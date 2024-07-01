@@ -220,6 +220,5 @@ export const projectDetails = [
 
 // Enter your Contact Details here
 export const contactDetails = {
-  email: "dawei.yin at columbia.com",
-  // phone: "+91 12345 67890",
+  email: "dawei.yin at columbia dot edu",
 };
