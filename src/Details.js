@@ -198,15 +198,14 @@ export const projectDetails = [
     // previewLink: "https://google.com",
     githubLink: "https://github.com/HEXA-QUAD",
   },
-  //   {
-  //     title: "Project title 5",
-  //     image: projectImage5,
-  //     description: `This is sample project description random things are here in description This is sample
-  // project lorem ipsum generator for dummy content`,
-  //     techstack: "HTML/CSS, JavaScript",
-  //     previewLink: "https://google.com",
-  //     githubLink: "https://github.com",
-  //   },
+    {
+      title: "Paxos model checking",
+      // image: projectImage5,
+      description: `Distributed system algorithm paxos model checker`,
+      techstack: "Distributed system, Model checker, Golang",
+      // previewLink: "https://google.com",
+      githubLink: "https://github.com/davvyin/paxos-model-checking/tree/main",
+    },
   //   {
   //     title: "Project title 6",
   //     image: projectImage6,
