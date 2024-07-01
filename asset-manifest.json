@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/static/css/main.dde565c8.css",
-    "main.js": "/static/js/main.de41701d.js",
+    "main.js": "/static/js/main.73c712ae.js",
     "static/media/project1.jpg": "/static/media/project1.b672818a41c75a8c3bf3.jpg",
     "static/media/sc.png": "/static/media/sc.dc2e74a6a866d14ad34c.png",
     "static/media/Boston_University.png": "/static/media/Boston_University.8703c6a9dcaa64d063d4.png",
@@ -11,10 +11,10 @@
     "static/media/project6.jpg": "/static/media/project6.a22c939898d6c4613b65.jpg",
     "index.html": "/index.html",
     "main.dde565c8.css.map": "/static/css/main.dde565c8.css.map",
-    "main.de41701d.js.map": "/static/js/main.de41701d.js.map"
+    "main.73c712ae.js.map": "/static/js/main.73c712ae.js.map"
   },
   "entrypoints": [
     "static/css/main.dde565c8.css",
-    "static/js/main.de41701d.js"
+    "static/js/main.73c712ae.js"
   ]
 }
