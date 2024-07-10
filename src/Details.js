@@ -177,15 +177,23 @@ export const projectDetails = [
   {
     title: "Participant Allocation Manager",
     image: Boston_University,
-    description: `PAM streamlines the participant enrollment process and participant allocation, supported by commonly used allocation algorithms including simple randomization, permuted block randomization, stratified block randomization, and adaptive minimization.`,
+    description: `PAM streamlines the participant enrollment process and participant allocation, supported by commonly used allocation algorithms`,
     techstack: "Algorithm, Chatbot, Python, Flask, React",
     previewLink: "https://documenter.getpostman.com/view/20352268/2s8YRcNbte#8f1053fe-6a4d-4c33-a8dd-8156aa6a03d1",
     githubLink: "https://github.com/dataperformance/PAM",
   },
   {
+    title: "Paxos model checking",
+    // image: projectImage5,
+    description: `Distributed system algorithm paxos model checker`,
+    techstack: "Distributed system, Model checker, Golang",
+    // previewLink: "https://google.com",
+    githubLink: "https://github.com/davvyin/paxos-model-checking/tree/main",
+  },
+  {
     title: "Hython",
     image: false,
-    description: `Hython is an imperative language that resembles a high-level language like Python.`,
+    description: `Hython is an imperative language that resembles a high-level language like Python`,
     techstack: "Ocaml, Complier, LLVM",
     previewLink: false,
     githubLink: "https://github.com/Dwyin7/4115_Hython",
@@ -193,28 +201,12 @@ export const projectDetails = [
   {
     title: "Sweety Course",
     image: sc,
-    description: `Course infomation system.`,
+    description: `Course infomation system`,
     techstack: "Cloud, Docker, Microservices, Algorithm",
     // previewLink: "https://google.com",
     githubLink: "https://github.com/HEXA-QUAD",
   },
-    {
-      title: "Paxos model checking",
-      // image: projectImage5,
-      description: `Distributed system algorithm paxos model checker`,
-      techstack: "Distributed system, Model checker, Golang",
-      // previewLink: "https://google.com",
-      githubLink: "https://github.com/davvyin/paxos-model-checking/tree/main",
-    },
-  //   {
-  //     title: "Project title 6",
-  //     image: projectImage6,
-  //     description: `This is sample project description random things are here in description This is sample
-  // project lorem ipsum generator for dummy content`,
-  //     techstack: "HTML/CSS, JavaScript",
-  //     previewLink: "https://google.com",
-  //     githubLink: "https://github.com",
-  //   },
+
 ];
 
 // Enter your Contact Details here

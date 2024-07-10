@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { logos, socialMediaUrl } from "../Details";
-
+import FancyFireLink from "./FancyFireLink";
 function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const { linkdein, github, twitter } = socialMediaUrl;
@@ -60,6 +60,11 @@ function Header() {
               Contact
             </NavLink>
           </li>
+          <ul>
+            <FancyFireLink href="https://leetc.gitbook.io/davleetcode" onClick={toggleClass}>
+                Coding challenges
+            </FancyFireLink>
+        </ul>
         </ul>
         <ul className="flex justify-evenly items-center my-5 md:my-0 md:space-x-5 md:mr-5">
           {/* <li>
