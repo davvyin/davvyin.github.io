@@ -1,14 +1,16 @@
 import React, { useRef, useEffect } from "react";
 import gsap from "gsap";
-import { personalDetails } from "../Details";
+import { useContent } from "../ContentContext";
 
 function Home() {
+  const { personalDetails } = useContent();
   const { name, tagline, img } = personalDetails;
   const h11 = useRef();
   const h12 = useRef();
   const h13 = useRef();
   const myimageref = useRef();
   useEffect(() => {
+    const elements = [h11.current, h12.current, h13.current, myimageref.current];
     const tl = gsap.timeline();
     tl.from(
       h11.current,
@@ -54,6 +56,10 @@ function Home() {
         },
         "<"
       );
+    return () => {
+      tl.kill();
+      gsap.set(elements, { clearProps: "transform,opacity" });
+    };
   }, []);
 
   return (
@@ -79,7 +85,7 @@ function Home() {
         </h2>
       </div>
       <div className="mt-5 md:mt-0">
-        <img ref={myimageref} className="w-1/2 md:ml-auto" src={img} alt="Pavan MG" />
+        <img ref={myimageref} className="w-1/2 md:ml-auto" src={img} alt={name} />
       </div>
     </main>
   );

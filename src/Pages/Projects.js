@@ -1,8 +1,9 @@
 import React from "react";
 import Project from "../Components/Project";
-import { projectDetails } from "../Details";
+import { useContent } from "../ContentContext";
 
 function Projects() {
+  const { projectDetails } = useContent();
   return (
     <main className="container mx-auto max-width pt-10 mb-20">
       <section>

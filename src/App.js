@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ContentProvider } from "./ContentContext";
 import Header from "./Components/Header";
 import Footer from "./Components/Footer";
 import Home from "./Pages/Home";
@@ -8,6 +9,7 @@ import Projects from "./Pages/Projects";
 import Technologies from "./Pages/Technologies";
 function App() {
   return (
+    <ContentProvider>
     <Router>
       <Header />
       <Routes>
@@ -19,6 +21,7 @@ function App() {
       </Routes>
       <Footer />
     </Router>
+    </ContentProvider>
   );
 }
 export default App;

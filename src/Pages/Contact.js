@@ -1,8 +1,9 @@
 import React from "react";
-import { contactDetails } from "../Details";
+import { useContent } from "../ContentContext";
 
 function Contact() {
-  const { email, phone } = contactDetails;
+  const { contactDetails } = useContent();
+  const { email } = contactDetails;
   return (
     <main className="container mx-auto max-width section">
       <h1 className="text-center text-2xl md:text-3xl lg:text-6xl text-dark-heading dark:text-light-heading font-semibold md:font-bold">

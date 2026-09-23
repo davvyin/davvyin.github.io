@@ -1,4 +1,5 @@
-// Enter all your detials in this file
+// Archived original content, retained for reference. Live content is now edited
+// at /admin/ and was imported by backend/portfolio/migrations/0002_initial_content.py.
 // Logo images
 import logogradient from "./assets/favicon/android-chrome-192x192.png";
 // import logo from "./assets/logo2.svg";

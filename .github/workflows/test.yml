@@ -1,0 +1,43 @@
+name: Test portfolio
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: portfolio
+          POSTGRES_PASSWORD: test-only-password
+          POSTGRES_DB: portfolio
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U portfolio"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DJANGO_DEBUG: "true"
+      DATABASE_URL: postgresql://portfolio:test-only-password@localhost:5432/portfolio
+      CI: "true"
+      GENERATE_SOURCEMAP: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: pip install -r backend/requirements.txt
+      - run: npm ci
+      - run: npm test -- --watchAll=false --runInBand
+      - run: npm run build
+      - run: python backend/manage.py collectstatic --noinput
+      - run: python backend/manage.py makemigrations --check --dry-run
+      - run: python backend/manage.py test portfolio
+      - run: python backend/manage.py migrate --noinput
+      - run: python backend/manage.py check --deploy --fail-level WARNING
+        env:
+          DJANGO_DEBUG: "false"
+          DJANGO_SECRET_KEY: "ci-only-check-key-8f0123456789abcdef0123456789abcdef0123456789abcdef"
+          DJANGO_ALLOWED_HOSTS: localhost

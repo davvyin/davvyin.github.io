@@ -1,8 +1,9 @@
 import React from "react";
 import Work from "../Components/Work";
-import { personalDetails, workDetails, eduDetails } from "../Details";
+import { useContent } from "../ContentContext";
 
 function About() {
+  const { personalDetails, workDetails, eduDetails } = useContent();
   return (
     <main className="container mx-auto max-width pt-10 pb-20 ">
       <section>
