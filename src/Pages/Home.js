@@ -3,7 +3,7 @@ import gsap from "gsap";
 import { useContent } from "../ContentContext";
 
 function Home() {
-  const { personalDetails } = useContent();
+  const { personalDetails, siteCopy } = useContent();
   const { name, tagline, img } = personalDetails;
   const h11 = useRef();
   const h12 = useRef();
@@ -69,7 +69,7 @@ function Home() {
           ref={h11}
           className="text-2xl text-dark-heading dark:text-light-heading md:text-4xl xl:text-5xl xl:leading-tight font-bold"
         >
-          Hi,👋<br></br>My Name is<br></br>
+          {siteCopy.home_greeting}<br />{siteCopy.home_name_leadin}<br />
         </h1>
         <h1
           ref={h12}

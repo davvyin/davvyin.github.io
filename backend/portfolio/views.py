@@ -3,7 +3,7 @@ from django.db import connection, DatabaseError
 from django.http import FileResponse, HttpResponse, JsonResponse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe
-from .models import Experience, Profile, Project, SocialLink, Technology
+from .models import Experience, Profile, Project, SiteText, SocialLink, Technology
 
 
 @require_safe
@@ -27,6 +27,7 @@ def content(request):
         "socialMediaUrl": {item.platform: item.url for item in SocialLink.objects.filter(is_visible=True)},
         "codingChallengesUrl": profile.coding_challenges_url,
         "footerText": profile.footer_text,
+        "siteCopy": dict(SiteText.objects.values_list("key", "text")),
         "workDetails": history("work"),
         "eduDetails": history("education"),
         "projectDetails": [{"id": p.pk, "title": p.title, "image": p.image,

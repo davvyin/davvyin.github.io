@@ -3,18 +3,18 @@ import Work from "../Components/Work";
 import { useContent } from "../ContentContext";
 
 function About() {
-  const { personalDetails, workDetails, eduDetails } = useContent();
+  const { personalDetails, workDetails, eduDetails, siteCopy } = useContent();
   return (
     <main className="container mx-auto max-width pt-10 pb-20 ">
       <section>
         <h1 className="text-2xl text-dark-heading dark:text-light-heading md:text-4xl xl:text-5xl xl:leading-tight font-bold">
-          About Me
+          {siteCopy.about_heading}
         </h1>
         <p className="text-content py-8 lg:max-w-3xl">{personalDetails.about}</p>
       </section>
       <section>
         <h1 className="text-2xl text-dark-heading dark:text-light-heading md:text-4xl xl:text-5xl xl:leading-tight font-bold">
-          Work Experience
+          {siteCopy.experience_heading}
         </h1>
         {React.Children.toArray(
           workDetails.map(({ Position, Company, Location, Type, Duration }) => (
@@ -30,7 +30,7 @@ function About() {
       </section>
       <section>
         <h1 className="text-2xl pt-10 text-dark-heading dark:text-light-heading md:text-4xl xl:text-5xl xl:leading-tight font-bold">
-          Education
+          {siteCopy.education_heading}
         </h1>
         {React.Children.toArray(
           eduDetails.map(({ Position, Company, Location, Type, Duration }) => (

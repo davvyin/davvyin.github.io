@@ -43,6 +43,40 @@ class SocialLink(OrderedContent):
         return self.get_platform_display()
 
 
+class SiteText(models.Model):
+    key = models.CharField(max_length=50, unique=True, choices=[
+        ("home_greeting", "Home — greeting"),
+        ("home_name_leadin", "Home — name introduction"),
+        ("about_heading", "About — page heading"),
+        ("experience_heading", "About — work heading"),
+        ("education_heading", "About — education heading"),
+        ("projects_heading", "Projects — page heading"),
+        ("contact_heading", "Contact — page heading"),
+        ("technologies_heading", "Technologies — page heading"),
+        ("technologies_intro", "Technologies — introduction"),
+        ("tools_heading", "Technologies — tools heading"),
+        ("nav_home", "Navigation — home"),
+        ("nav_about", "Navigation — about"),
+        ("nav_technologies", "Navigation — technologies"),
+        ("nav_projects", "Navigation — projects"),
+        ("nav_contact", "Navigation — contact"),
+        ("coding_challenges_label", "Navigation — coding challenges"),
+        ("project_keywords_label", "Project card — keywords"),
+        ("project_preview_label", "Project card — live preview"),
+        ("project_code_label", "Project card — view code"),
+        ("footer_admin_label", "Footer — admin link"),
+    ])
+    text = models.CharField(max_length=300)
+
+    class Meta:
+        ordering = ["key"]
+        verbose_name = "site text"
+        verbose_name_plural = "site text and labels"
+
+    def __str__(self):
+        return self.get_key_display()
+
+
 class Experience(OrderedContent):
     kind = models.CharField(max_length=10, choices=[("work", "Work"), ("education", "Education")])
     position = models.CharField(max_length=250)

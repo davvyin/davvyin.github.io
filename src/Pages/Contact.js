@@ -2,12 +2,12 @@ import React from "react";
 import { useContent } from "../ContentContext";
 
 function Contact() {
-  const { contactDetails } = useContent();
+  const { contactDetails, siteCopy } = useContent();
   const { email } = contactDetails;
   return (
     <main className="container mx-auto max-width section">
       <h1 className="text-center text-2xl md:text-3xl lg:text-6xl text-dark-heading dark:text-light-heading font-semibold md:font-bold">
-        Feel Free to connect wtih me:
+        {siteCopy.contact_heading}
       </h1>
       <h3 className="text-center text-3xl md:text-4xl lg:text-6xl text-gradient font-semibold md:font-bold pt-5 md:pt-10 md:pb-6">
         {/* <a href={`mailto:${email}`}>{email}</a> */}

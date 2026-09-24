@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import { useContent } from "../ContentContext";
 import FancyFireLink from "./FancyFireLink";
 function Header() {
-  const { logos, socialMediaUrl, codingChallengesUrl } = useContent();
+  const { logos, socialMediaUrl, codingChallengesUrl, siteCopy } = useContent();
   const [isOpen, setIsOpen] = useState(false);
   const { linkdein, github } = socialMediaUrl;
   const toggleClass = () => {
@@ -38,32 +38,32 @@ function Header() {
         <ul className="dark:text-light-content font-medium md:flex items-center md:space-x-5 md:mr-10">
           <li className="pb-1 md:pb-0">
             <NavLink to="/" onClick={toggleClass}>
-              Home
+              {siteCopy.nav_home}
             </NavLink>
           </li>
           <li className="pb-1 md:pb-0">
             <NavLink to="/about" onClick={toggleClass}>
-              About
+              {siteCopy.nav_about}
             </NavLink>
           </li>
           <li className="pb-1 md:pb-0">
             <NavLink to="/technologies" onClick={toggleClass}>
-              Technologies
+              {siteCopy.nav_technologies}
             </NavLink>
           </li>
           <li className="pb-1 md:pb-0">
             <NavLink to="/projects" onClick={toggleClass}>
-              Projects
+              {siteCopy.nav_projects}
             </NavLink>
           </li>
           <li>
             <NavLink to="/contact" onClick={toggleClass}>
-              Contact
+              {siteCopy.nav_contact}
             </NavLink>
           </li>
           {codingChallengesUrl && <li>
             <FancyFireLink href={codingChallengesUrl} onClick={toggleClass}>
-                Coding challenges
+                {siteCopy.coding_challenges_label}
             </FancyFireLink>
           </li>}
         </ul>

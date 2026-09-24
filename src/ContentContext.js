@@ -5,6 +5,7 @@ const ContentContext = createContext(null);
 function validContent(data) {
   return data && data.personalDetails && data.logos && data.contactDetails &&
     data.socialMediaUrl && typeof data.footerText === "string" &&
+    data.siteCopy && typeof data.siteCopy === "object" &&
     ["workDetails", "eduDetails", "projectDetails", "technologies"].every(
       (key) => Array.isArray(data[key])
     );

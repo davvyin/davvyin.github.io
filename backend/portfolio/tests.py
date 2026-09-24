@@ -10,7 +10,7 @@ from django.core.management import call_command
 from django.db import DatabaseError
 from django.forms.models import model_to_dict
 from django.test import Client, TestCase, override_settings
-from .models import Experience, Profile, Project, SocialLink, Technology
+from .models import Experience, Profile, Project, SiteText, SocialLink, Technology
 from .validators import image_url
 
 
@@ -26,11 +26,22 @@ class ContentTests(TestCase):
         self.assertEqual(len(data["technologies"]), 27)
         self.assertEqual(data["projectDetails"][0]["title"], "LingoLeap")
         self.assertEqual(data["contactDetails"]["email"], "dawei.yin at columbia dot edu")
+        self.assertEqual(data["siteCopy"]["projects_heading"], "Selected Projects")
+        self.assertEqual(len(data["siteCopy"]), 20)
         self.assertNotIn("password", response.content.decode())
         self.assertIn("no-store", response["Cache-Control"])
         for model in [Profile, Project, Experience, SocialLink, Technology]:
             for item in model.objects.all():
                 item.full_clean()
+
+    def test_site_copy_edits_appear_on_the_public_api(self):
+        SiteText.objects.filter(key="projects_heading").update(text="My work")
+        self.assertEqual(self.client.get("/api/content/").json()["siteCopy"]["projects_heading"], "My work")
+
+    def test_site_copy_migration_preserves_edits(self):
+        SiteText.objects.filter(key="about_heading").update(text="Hello there")
+        call_command("migrate", verbosity=0)
+        self.assertEqual(SiteText.objects.get(key="about_heading").text, "Hello there")
 
     def test_order_visibility_and_empty_collections_are_authoritative(self):
         Project.objects.all().update(is_visible=False)
@@ -102,6 +113,31 @@ class AdminTests(TestCase):
         response = client.post(url, data)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(self.client.get("/api/content/").json()["personalDetails"]["name"], "Updated through admin")
+
+    def test_site_copy_is_editable_in_admin_and_updates_live_api(self):
+        self.client.force_login(self.admin)
+        text = SiteText.objects.get(key="projects_heading")
+        response = self.client.post(f"/admin/portfolio/sitetext/{text.pk}/change/", {
+            "key": text.key, "text": "My portfolio work", "_save": "Save",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.client.get("/api/content/").json()["siteCopy"]["projects_heading"], "My portfolio work")
+
+    @override_settings(DEBUG=False, SECURE_SSL_REDIRECT=False,
+                       SESSION_COOKIE_SECURE=False, CSRF_COOKIE_SECURE=False)
+    def test_lan_admin_login_with_csrf_and_session_cookie(self):
+        client = Client(enforce_csrf_checks=True)
+        response = client.get("/admin/login/")
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.cookies["csrftoken"]["secure"])
+        response = client.post("/admin/login/?next=/admin/", {
+            "username": "admin-test", "password": "test-only-password",
+            "csrfmiddlewaretoken": client.cookies["csrftoken"].value,
+            "next": "/admin/",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(response.cookies["sessionid"]["secure"])
+        self.assertContains(client.get("/admin/"), "Portfolio administration")
 
     def test_profile_cannot_be_duplicated_or_deleted_from_admin(self):
         self.client.force_login(self.admin)

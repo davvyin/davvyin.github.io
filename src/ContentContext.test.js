@@ -7,6 +7,7 @@ import Projects from "./Pages/Projects";
 const content = {
   personalDetails: { name: "Admin edited name" }, logos: {}, contactDetails: {},
   socialMediaUrl: {}, footerText: "Footer", workDetails: [], eduDetails: [],
+  siteCopy: { projects_heading: "Selected Projects" },
   projectDetails: [], technologies: [],
 };
 const originalFetch = global.fetch;

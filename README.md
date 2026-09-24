@@ -40,6 +40,7 @@ Open http://127.0.0.1:8000. Existing routes (`/about`, `/projects`, `/technologi
 At `/admin/` you can manage:
 
 - **Site profile:** name, biography, tagline, profile image, logo, contact text, coding challenges link, and footer.
+- **Site text and labels:** all visible page headings, home greeting, navigation labels, technology page introduction, project card labels, and footer admin label.
 - **Projects:** descriptions, images, keywords, preview links, source links, ordering, and visibility.
 - **Experiences:** work and education entries, ordering, and visibility.
 - **Technologies:** technology/tool groups, icons, ordering, and visibility.
@@ -53,6 +54,8 @@ Images accept an HTTPS URL or a site-relative path, such as `/static/portfolio/p
 No default admin account or password is shipped. To reset your account's password, run `python backend/manage.py changepassword USERNAME` (use `docker compose exec web` before the command when hosted).
 
 ## Hosting with Docker and PostgreSQL
+
+For a low-memory Raspberry Pi, see the [native deployment instructions](deploy/raspberrypi/README.md) using systemd, Gunicorn, Nginx, and PostgreSQL.
 
 **GitHub Pages cannot run Django.** Host the full application on a VPS or a platform that runs containers and provides PostgreSQL. The former GitHub Pages deployment scripts have been removed because the frontend now requires the API.
 

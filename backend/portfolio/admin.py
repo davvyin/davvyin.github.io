@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Experience, Profile, Project, SocialLink, Technology
+from .models import Experience, Profile, Project, SiteText, SocialLink, Technology
 
 admin.site.site_header = "Portfolio administration"
 admin.site.site_title = "Portfolio admin"
@@ -43,3 +43,10 @@ class TechnologyAdmin(OrderedAdmin):
 @admin.register(SocialLink)
 class SocialLinkAdmin(OrderedAdmin):
     list_display = ("platform", "url", "order", "is_visible")
+
+
+@admin.register(SiteText)
+class SiteTextAdmin(admin.ModelAdmin):
+    list_display = ("get_key_display", "text")
+    search_fields = ("key", "text")
+    list_per_page = 50

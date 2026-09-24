@@ -1,6 +1,6 @@
 import React from "react";
 
-function Project({ title, image, description, techstack, previewLink, githubLink }) {
+function Project({ title, image, description, techstack, previewLink, githubLink, labels }) {
   return (
     <article className="rounded-xl mt-10 overflow-hidden shadow-xl shadow-slate-300 dark:shadow-slate-900">
       {image &&
@@ -11,7 +11,7 @@ function Project({ title, image, description, techstack, previewLink, githubLink
         <p className="text-content pt-4 font-light">{description}</p>
         {techstack &&
           <h3 className="text-dark-heading dark:text-light-heading font-medium pt-4">
-            Keywords: <span className="font-light">{techstack}</span>
+            {labels.project_keywords_label}: <span className="font-light">{techstack}</span>
           </h3>
         }
         <div className="flex justify-between items-center mt-5">
@@ -44,7 +44,7 @@ function Project({ title, image, description, techstack, previewLink, githubLink
                 rel="noreferrer noopener"
                 className="underline pl-2 font-light dark:text-white"
               >
-                Live Preview
+                {labels.project_preview_label}
               </a>
             </div>
           }
@@ -71,7 +71,7 @@ function Project({ title, image, description, techstack, previewLink, githubLink
                 rel="noreferrer noopener"
                 className="underline pl-2 font-light dark:text-white"
               >
-                View Code
+                {labels.project_code_label}
               </a>
 
             </div>
