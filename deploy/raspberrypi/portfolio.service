@@ -6,6 +6,7 @@ Wants=postgresql.service
 [Service]
 User=portfolio
 Group=portfolio
+SupplementaryGroups=video
 WorkingDirectory=/srv/portfolio/app/backend
 EnvironmentFile=/srv/portfolio/app/.env
 Environment=PYTHONDONTWRITEBYTECODE=1

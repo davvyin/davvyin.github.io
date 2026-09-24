@@ -1,8 +1,11 @@
 from django.conf import settings
 from django.db import connection, DatabaseError
-from django.http import FileResponse, HttpResponse, JsonResponse
+from django.contrib.admin.views.decorators import staff_member_required
+from django.http import FileResponse, HttpResponse, JsonResponse, StreamingHttpResponse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe
+from django.shortcuts import render
+from .camera import multipart_frames, start_stream, stop_stream
 from .models import Experience, Profile, Project, SiteText, SocialLink, Technology
 
 
@@ -57,3 +60,30 @@ def frontend(request):
     if not index.is_file():
         return HttpResponse("Frontend build missing. Run npm ci and npm run build, or use npm start for development.", status=503, content_type="text/plain")
     return FileResponse(index.open("rb"), content_type="text/html")
+
+
+@staff_member_required
+@never_cache
+def camera_page(request):
+    return render(request, "portfolio/camera.html")
+
+
+@staff_member_required
+@never_cache
+def camera_stream(request):
+    process, release = start_stream()
+    if process is None:
+        return HttpResponse(
+            "The camera is unavailable or another staff session is using it.",
+            status=503,
+            content_type="text/plain",
+        )
+    response = StreamingHttpResponse(
+        multipart_frames(process, release),
+        content_type="multipart/x-mixed-replace; boundary=frame",
+    )
+    response["X-Accel-Buffering"] = "no"
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    # Also stop the camera if the client disconnects before reading the stream.
+    response._resource_closers.append(lambda: stop_stream(process, release))
+    return response

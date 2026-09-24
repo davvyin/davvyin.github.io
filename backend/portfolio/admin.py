@@ -4,6 +4,7 @@ from .models import Experience, Profile, Project, SiteText, SocialLink, Technolo
 admin.site.site_header = "Portfolio administration"
 admin.site.site_title = "Portfolio admin"
 admin.site.index_title = "Manage your website"
+admin.site.index_template = "portfolio/admin_index.html"
 
 
 @admin.register(Profile)

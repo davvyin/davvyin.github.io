@@ -63,6 +63,10 @@ The app runs at `http://raspberrypi.local` / `http://192.168.1.132`, with admin 
 
 The admin edits the original portfolio values and the visible page copy. The `Site text and labels` section controls headings, navigation labels, greeting, and card buttons. Saving text updates the database API; refreshing the page renders the edited value. The 2026-09-24 release is a workspace snapshot based on commit `e95c5f4` plus local changes, SHA-256 `24b0e56a455a68c403f92331c9cf2c7f5c8a7340087eb42b7559b96346a35e5c`. Make a verified database backup before future updates.
 
+## Staff-only camera stream
+
+The Django admin exposes a live camera page at `/admin/camera/`. Both the page and its MJPEG stream endpoint require a signed-in Django staff account. The stream uses `rpicam-vid` at 1280x720/15 fps and allows one active stream. The `portfolio` system user needs access to the Linux `video` group; the service unit declares `SupplementaryGroups=video`. Nginx should pass `/admin/camera/stream.mjpg` without buffering (`X-Accel-Buffering: no` is set by Django). Keep the origin on HTTPS and do not publish a separate unauthenticated camera port.
+
 The original `/home/dawei/davvyin.github.io` checkout contained only the older frontend and was left unchanged. The running `/srv/portfolio/app` is a deployment snapshot of the completed local workspace (base commit `e95c5f4` plus the Raspberry Pi configuration changes), not a Git checkout. Update it from the completed project; pulling the old checkout will not update the running app. Deployment provenance is recorded in `/srv/portfolio/deployment.json`.
 
 An initial PostgreSQL backup is stored at `/srv/portfolio/backups/initial-20260923.dump`. This is a one-time backup, not an automated backup schedule. Services are enabled at boot. This installation is LAN-only HTTP; public-domain HTTPS has not been configured.

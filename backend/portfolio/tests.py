@@ -1,4 +1,5 @@
 import json
+import io
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -99,6 +100,59 @@ class AdminTests(TestCase):
         self.assertEqual(self.client.get("/admin/portfolio/profile/1/change/").status_code, 403)
         self.client.force_login(self.admin)
         self.assertContains(self.client.get("/admin/"), "Portfolio administration")
+
+    def test_camera_page_is_limited_to_staff_and_linked_from_admin(self):
+        self.assertRedirects(
+            self.client.get("/admin/camera/"),
+            "/admin/login/?next=/admin/camera/",
+        )
+        self.client.force_login(self.user)
+        self.assertRedirects(
+            self.client.get("/admin/camera/"),
+            "/admin/login/?next=/admin/camera/",
+        )
+        self.client.force_login(self.staff)
+        self.assertContains(self.client.get("/admin/camera/"), "/admin/camera/stream.mjpg")
+        self.assertContains(self.client.get("/admin/"), "Open staff-only live camera view")
+
+    def test_camera_stream_is_staff_only_and_serves_multipart_jpegs(self):
+        from .camera import start_stream
+
+        stream_path = "/admin/camera/stream.mjpg"
+        with patch("portfolio.views.start_stream") as start:
+            self.assertEqual(self.client.get(stream_path).status_code, 302)
+            start.assert_not_called()
+
+        self.client.force_login(self.staff)
+        jpeg1 = b"\xff\xd8first-frame\xff\xd9"
+        jpeg2 = b"\xff\xd8second-frame\xff\xd9"
+
+        class FakeProcess:
+            stdout = io.BytesIO(b"noise" + jpeg1 + jpeg2)
+
+            @staticmethod
+            def poll():
+                return 0
+
+        with patch("portfolio.camera.shutil.which", return_value="/usr/bin/rpicam-vid"), patch(
+            "portfolio.camera.subprocess.Popen", return_value=FakeProcess()
+        ) as popen:
+            response = self.client.get(stream_path)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response["Content-Type"], "multipart/x-mixed-replace; boundary=frame")
+            self.assertEqual(response["X-Accel-Buffering"], "no")
+            body = b"".join(response.streaming_content)
+            self.assertEqual(body.count(b"--frame\r\n"), 2)
+            self.assertIn(jpeg1, body)
+            self.assertIn(jpeg2, body)
+            response.close()
+            self.assertEqual(popen.call_args.args[0][0], "/usr/bin/rpicam-vid")
+
+    def test_camera_stream_reports_missing_camera_tool(self):
+        self.client.force_login(self.staff)
+        with patch("portfolio.camera.shutil.which", return_value=None):
+            response = self.client.get("/admin/camera/stream.mjpg")
+        self.assertEqual(response.status_code, 503)
 
     def test_admin_edit_with_csrf_appears_in_public_api(self):
         client = Client(enforce_csrf_checks=True)
