@@ -1,0 +1,3 @@
+# Upstream ships both the collector and compiled Vue/Bootstrap Web UI.
+# Separate environment from Django; reverify routes/assets before upgrading.
+glances[web]==4.5.6

@@ -41,6 +41,8 @@ Open http://127.0.0.1:8000. Existing routes (`/about`, `/projects`, `/technologi
 
 ## Editing content
 
+Superusers can open **System health** from the admin home at `/admin/system/`. It embeds the open-source Glances dashboard for live CPU, memory, storage, network, and sensor metrics. Install the separate Pi collector using the [system-monitor guide](backend/system_monitor/README.md). Every dashboard, asset, and metrics request requires a superuser session; ordinary staff accounts cannot access it.
+
 At `/admin/` you can manage:
 
 - **Site profile:** name, biography, tagline, profile image, logo, contact text, coding challenges link, and footer.
@@ -126,7 +128,7 @@ CI=true npm test -- --watchAll=false --runInBand
 CI=true GENERATE_SOURCEMAP=false npm run build
 python backend/manage.py collectstatic --noinput
 python backend/manage.py makemigrations --check --dry-run
-python backend/manage.py test portfolio
+python backend/manage.py test portfolio system_monitor
 ```
 
 The backend tests include initial data, ordering/visibility, empty lists, URL validation, read-only API behavior, staff permissions, CSRF-protected admin edits, migration preservation, deep links, database health, and production static assets. Build and collect static files before running them. The frontend tests cover loading, failure/retry, invalid responses, cancellation, empty projects, and page navigation using API content.

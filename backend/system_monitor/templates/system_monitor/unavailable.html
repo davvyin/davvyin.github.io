@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Monitoring unavailable</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; padding: 48px 24px; font: 16px/1.6 system-ui, sans-serif; color: #e5e7eb; background: #212529; }
+    main { max-width: 520px; margin: 8vh auto; }
+    h1 { font-size: 26px; letter-spacing: -.5px; }
+    p { color: #bdc5ce; }
+    a { display: inline-block; background: #79aec8; color: #10232d; padding: 10px 20px; border-radius: 6px; font-weight: 600; text-decoration: none; }
+  </style>
+</head>
+<body><main>
+  <h1>Monitoring is not available yet</h1>
+  <p>The local collector may be starting or temporarily offline. The portfolio and its content editor are still available.</p>
+  <p>If this is the first visit, complete the system-monitor installation described in the deployment guide.</p>
+  <a href="{% url 'system_monitor:dashboard' %}">Try again</a>
+</main></body>
+</html>

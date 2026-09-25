@@ -1,6 +1,17 @@
 {% extends "admin/index.html" %}
 
 {% block content %}
+{% if user.is_superuser %}
+<div class="module" style="margin-bottom: 16px;">
+  <table>
+    <caption>Raspberry Pi health</caption>
+    <tbody>
+      <tr><th scope="row"><a href="{% url 'system_monitor:index' %}">Open system monitoring dashboard</a></th></tr>
+      <tr><td>CPU, memory, storage, network traffic, and sensors · Administrators only</td></tr>
+    </tbody>
+  </table>
+</div>
+{% endif %}
 <div class="module" style="margin-bottom: 16px;">
   <table>
     <caption>Raspberry Pi camera</caption>

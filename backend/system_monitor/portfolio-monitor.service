@@ -1,0 +1,25 @@
+[Unit]
+Description=Portfolio system monitoring (Glances)
+After=network.target
+
+[Service]
+Type=simple
+User=portfolio-monitor
+Group=portfolio-monitor
+SupplementaryGroups=portfolio
+WorkingDirectory=/srv/portfolio
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/srv/portfolio/monitor-venv/bin/glances --webserver --bind 127.0.0.1 --port 61208 --time 5 --byte --disable-config-exec --disable-autodiscover --config /srv/portfolio/app/backend/system_monitor/glances.conf
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

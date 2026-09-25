@@ -382,6 +382,8 @@ The live Pi now runs a self-hosted WireGuard server. The public portfolio remain
 
 ## Optional staff camera
 
+For CPU, memory, storage, network traffic, and sensor monitoring, install the separate [admin-only Glances dashboard](../../backend/system_monitor/README.md) at `/admin/system/`. It includes a dedicated collector service and uses the existing private admin/VPN route without opening another public port.
+
 Connect a supported camera with the Pi powered off, then boot. **Pi:**
 
 ```sh

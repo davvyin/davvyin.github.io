@@ -34,7 +34,7 @@ jobs:
       - run: npm run build
       - run: python backend/manage.py collectstatic --noinput
       - run: python backend/manage.py makemigrations --check --dry-run
-      - run: python backend/manage.py test portfolio
+      - run: python backend/manage.py test portfolio system_monitor
       - run: python backend/manage.py migrate --noinput
       - run: python backend/manage.py check --deploy --fail-level WARNING
         env:
