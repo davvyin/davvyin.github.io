@@ -1,0 +1,4 @@
+interface:
+  display_name: "Portfolio Backend"
+  short_description: "Preserve React portfolios while adding Django admin"
+  default_prompt: "Use $portfolio-backend to add or maintain the Django backend and admin for this React portfolio, then verify the integration."

@@ -1,21 +1,23 @@
 import React from "react";
+import { useContent } from "../ContentContext";
+
 function Footer() {
+  const { footerText, siteCopy } = useContent();
+  const adminHref = process.env.NODE_ENV === "development"
+    ? "/admin/"
+    : "http://10.66.66.1:8080/admin/";
   return (
     <footer className="container mx-auto py-1 fixed bottom-0 md:left-20 bg-white dark:bg-dark-mode">
       <p className="text-xs text-center text-dark-content dark:text-light-content w-full">
-        {/* Designed and Coded by{" "} */}
-        {/* <a
-          className="font-medium"
-          href="https://pavanmg.in"
-          target="_blank"
-          rel="noreferrer noopener"
+        {footerText}
+        <a
+          className="ml-4 underline"
+          href={adminHref}
+          aria-label={`${siteCopy.footer_admin_label} (VPN required)`}
+          title="Requires an active WireGuard VPN connection"
         >
-          Pavan MG
-        </a>{" "} */}
-        Dawei Yin @ 2024
-        {/* with
-        <span className="text-gradient font-medium"> Love</span> &
-        <span className="text-gradient font-medium"> Coffee</span> */}
+          {siteCopy.footer_admin_label} <span aria-hidden="true">(VPN)</span>
+        </a>
       </p>
     </footer>
   );

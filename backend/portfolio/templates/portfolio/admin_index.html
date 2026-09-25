@@ -1,0 +1,13 @@
+{% extends "admin/index.html" %}
+
+{% block content %}
+<div class="module" style="margin-bottom: 16px;">
+  <table>
+    <caption>Raspberry Pi camera</caption>
+    <tbody>
+      <tr><th scope="row"><a href="{% url 'camera_page' %}">Open staff-only live camera view</a></th></tr>
+    </tbody>
+  </table>
+</div>
+{{ block.super }}
+{% endblock %}

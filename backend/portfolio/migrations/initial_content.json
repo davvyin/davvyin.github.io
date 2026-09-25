@@ -1,0 +1,427 @@
+[
+  {
+    "model": "Profile",
+    "fields": {
+      "id": 1,
+      "name": "Dawei (David) Yin",
+      "tagline": "",
+      "about": "A Computer Science grad student at Columbia University. Passionate about tech innovations, I've honed my skills in Software Development, Data Analysis and visualization. Seeking opportunities in forward-thinking tech companies to apply my expertise.",
+      "image": "/static/portfolio/profile.jpg",
+      "logo": "/static/portfolio/favicon/android-chrome-192x192.png",
+      "email": "dawei.yin at columbia dot edu",
+      "coding_challenges_url": "https://leetc.gitbook.io/davleetcode",
+      "footer_text": "Dawei Yin @ 2024"
+    }
+  },
+  {
+    "model": "SocialLink",
+    "fields": {
+      "platform": "linkdein",
+      "url": "https://www.linkedin.com/in/davyin/",
+      "order": 0
+    }
+  },
+  {
+    "model": "SocialLink",
+    "fields": {
+      "platform": "github",
+      "url": "https://github.com/davvyin",
+      "order": 1
+    }
+  },
+  {
+    "model": "SocialLink",
+    "fields": {
+      "platform": "instagram",
+      "url": "https://www.instagram.com/",
+      "order": 2
+    }
+  },
+  {
+    "model": "Experience",
+    "fields": {
+      "kind": "work",
+      "order": 0,
+      "position": "Site Reliability Engineer Internship",
+      "company": "Tencent America",
+      "location": "Los Angeles, CA",
+      "type": "Full Time",
+      "duration": "Jun 2024 - Aug 2024"
+    }
+  },
+  {
+    "model": "Experience",
+    "fields": {
+      "kind": "work",
+      "order": 1,
+      "position": "Full Stack Engineer",
+      "company": "LingoLeap",
+      "location": "Santa Clara, Remote",
+      "type": "Part Time",
+      "duration": "May 2023 - Jan 2024"
+    }
+  },
+  {
+    "model": "Experience",
+    "fields": {
+      "kind": "work",
+      "order": 2,
+      "position": "Research Assistant",
+      "company": "HI-Lab, Boston University",
+      "location": "Boston, MA",
+      "type": "Internship",
+      "duration": "Jan 2022 - Jun 2023"
+    }
+  },
+  {
+    "model": "Experience",
+    "fields": {
+      "kind": "work",
+      "order": 3,
+      "position": "Software Engineer Intern",
+      "company": "Tencent America, Security Department",
+      "location": "Palo Alto, CA",
+      "type": "Internship",
+      "duration": "Jun 2022 - Aug 2022"
+    }
+  },
+  {
+    "model": "Experience",
+    "fields": {
+      "kind": "education",
+      "order": 0,
+      "position": "M.S. in Computer Science",
+      "company": "Columbia University",
+      "location": "New York, NY",
+      "type": "Full Time",
+      "duration": "Expected Dec 2024"
+    }
+  },
+  {
+    "model": "Experience",
+    "fields": {
+      "kind": "education",
+      "order": 1,
+      "position": "M.S. in Data Analytics",
+      "company": "Boston University",
+      "location": "Boston, MA",
+      "type": "Full Time",
+      "duration": "May 2023"
+    }
+  },
+  {
+    "model": "Experience",
+    "fields": {
+      "kind": "education",
+      "order": 2,
+      "position": "B.A. in Computer Science & Mathematics",
+      "company": "Boston University",
+      "location": "Boston, MA",
+      "type": "Full Time",
+      "duration": "May 2021"
+    }
+  },
+  {
+    "model": "Project",
+    "fields": {
+      "order": 0,
+      "title": "LingoLeap",
+      "image": "/static/portfolio/projects/project1.jpg",
+      "description": "Your Personal AI Tutor for Language Learning",
+      "techstack": "",
+      "preview_link": "https://lingoleap.ai/",
+      "github_link": ""
+    }
+  },
+  {
+    "model": "Project",
+    "fields": {
+      "order": 1,
+      "title": "Participant Allocation Manager",
+      "image": "/static/portfolio/projects/Boston_University.png",
+      "description": "PAM streamlines the participant enrollment process and participant allocation, supported by commonly used allocation algorithms",
+      "techstack": "Algorithm, Chatbot, Python, Flask, React",
+      "preview_link": "https://documenter.getpostman.com/view/20352268/2s8YRcNbte#8f1053fe-6a4d-4c33-a8dd-8156aa6a03d1",
+      "github_link": "https://github.com/dataperformance/PAM"
+    }
+  },
+  {
+    "model": "Project",
+    "fields": {
+      "order": 2,
+      "title": "Paxos model checking",
+      "image": "",
+      "description": "Distributed system algorithm paxos model checker",
+      "techstack": "Distributed system, Model checker, Golang",
+      "preview_link": "",
+      "github_link": "https://github.com/davvyin/paxos-model-checking/tree/main"
+    }
+  },
+  {
+    "model": "Project",
+    "fields": {
+      "order": 3,
+      "title": "Hython",
+      "image": "",
+      "description": "Hython is an imperative language that resembles a high-level language like Python",
+      "techstack": "Ocaml, Complier, LLVM",
+      "preview_link": "",
+      "github_link": "https://github.com/Dwyin7/4115_Hython"
+    }
+  },
+  {
+    "model": "Project",
+    "fields": {
+      "order": 4,
+      "title": "Sweety Course",
+      "image": "/static/portfolio/projects/sc.png",
+      "description": "Course infomation system",
+      "techstack": "Cloud, Docker, Microservices, Algorithm",
+      "preview_link": "",
+      "github_link": "https://github.com/HEXA-QUAD"
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "Python",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
+      "order": 0
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "Go",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/go/go-original.svg",
+      "order": 1
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "C++",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg",
+      "order": 2
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "Java",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg",
+      "order": 3
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "JavaScript",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg",
+      "order": 4
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "Dart",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/dart/dart-original.svg",
+      "order": 5
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "R",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/r/r-original.svg",
+      "order": 6
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "HTML5",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg",
+      "order": 7
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "CSS",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg",
+      "order": 8
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "React",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg",
+      "order": 9
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "Redux",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redux/redux-original.svg",
+      "order": 10
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "Flutter",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg",
+      "order": 11
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "OCaml",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/ocaml/ocaml-original.svg",
+      "order": 12
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "Haskell",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/haskell/haskell-original.svg",
+      "order": 13
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "MySQL",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg",
+      "order": 14
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "PostgreSQL",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg",
+      "order": 15
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "MongoDB",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg",
+      "order": 16
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "Flask",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flask/flask-original.svg",
+      "order": 17
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "Django",
+      "group": "stack",
+      "image": "https://static.djangoproject.com/img/logos/django-logo-negative.svg",
+      "order": 18
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "TensorFlow",
+      "group": "stack",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tensorflow/tensorflow-original.svg",
+      "order": 19
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "Docker",
+      "group": "tool",
+      "image": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg",
+      "order": 20
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "Visual Studio Code",
+      "group": "tool",
+      "image": "/static/portfolio/techstack/vscode.png",
+      "order": 21
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "Git",
+      "group": "tool",
+      "image": "/static/portfolio/techstack/git.png",
+      "order": 22
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "Github",
+      "group": "tool",
+      "image": "/static/portfolio/techstack/github.png",
+      "order": 23
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "Figma",
+      "group": "tool",
+      "image": "/static/portfolio/techstack/figma.png",
+      "order": 24
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "NPM",
+      "group": "tool",
+      "image": "/static/portfolio/techstack/npm.png",
+      "order": 25
+    }
+  },
+  {
+    "model": "Technology",
+    "fields": {
+      "name": "Postman",
+      "group": "tool",
+      "image": "/static/portfolio/techstack/postman.png",
+      "order": 26
+    }
+  }
+]

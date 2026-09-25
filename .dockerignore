@@ -1,0 +1,12 @@
+.git
+.venv
+node_modules
+build
+.env
+.env.*
+backend/*.sqlite3*
+backend/staticfiles
+**/__pycache__
+skills
+.qodo
+coverage
