@@ -34,7 +34,10 @@ test("existing pages render API content and navigation retains the admin entry",
   await act(async () => { render(<App />); });
   expect(await screen.findByRole("heading", { name: "Test owner" })).toBeInTheDocument();
   expect(screen.getByRole("img", { name: "Test owner" })).toHaveAttribute("src", "/photo.jpg");
-  expect(screen.getByRole("link", { name: "Admin" })).toHaveAttribute("href", "/admin/");
+  expect(screen.getByRole("link", { name: "Admin (VPN required)" }))
+    .toHaveAttribute("href", "http://10.66.66.1:8080/admin/");
+  expect(screen.getByRole("link", { name: "Admin (VPN required)" }))
+    .toHaveAttribute("title", "Requires an active WireGuard VPN connection");
   fireEvent.click(screen.getByRole("link", { name: "Bio" }));
   expect(screen.getByRole("heading", { name: "About me" })).toBeInTheDocument();
   expect(await screen.findByText("Biography from admin")).toBeInTheDocument();

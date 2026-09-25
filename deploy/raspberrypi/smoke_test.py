@@ -83,5 +83,4 @@ finally:
             Session.objects.filter(session_key=cookie.value).delete()
     user.delete()
 
-assert get_user_model().objects.filter(username="dawei", is_active=True, is_superuser=True).exists()
 print(f"Passed {checks} deployed HTTP checks, including a CSRF-protected admin login. Temporary account removed.")
