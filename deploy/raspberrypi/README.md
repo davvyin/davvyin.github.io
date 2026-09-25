@@ -378,7 +378,7 @@ Repeat smoke/browser checks at the appropriate origin. Future backups must use y
 
 ## Private admin with WireGuard
 
-The live Pi now runs a self-hosted WireGuard server. The public portfolio remains available at `https://davyin.tech/`, while public requests for `/admin/` return 404. Connect the Mac VPN first, then open `http://10.66.66.1:8080/admin/`. Follow the [WireGuard runbook](wireguard/README.md) for setup, router forwarding, client import, verification, and recovery steps. Remote access still needs a router rule forwarding UDP 51820 to the Pi; TCP is not needed.
+The live Pi now runs a self-hosted WireGuard server. The public portfolio remains available at `https://davyin.tech/`, while public requests for `/admin/` return 404. Connect the Mac's dedicated WireGuard peer first, then open `http://10.66.66.1:8080/admin/`. Give each device its own peer key and tunnel IP; do not share profiles between the Mac and phone. Follow the [WireGuard runbook](wireguard/README.md) for peer creation/revocation, router forwarding, client import, verification, and recovery steps. Remote access still needs a router rule forwarding UDP 51820 to the Pi; TCP is not needed.
 
 ## Optional staff camera
 

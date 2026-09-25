@@ -8,7 +8,7 @@ This is the detailed setup and operations guide for the self-hosted WireGuard VP
 Mac WireGuard client
   └─ encrypted UDP to vpn.davyin.tech:51820
        └─ router forwards UDP 51820 to Pi 192.168.1.132
-            └─ WireGuard wg0: Pi 10.66.66.1 ↔ Mac 10.66.66.2
+            └─ WireGuard wg0: Pi 10.66.66.1 ↔ Mac 10.66.66.3
                  └─ Mac opens http://10.66.66.1:8080/admin/ (and /admin/camera/)
                       └─ Nginx permits only 10.66.66.0/24, then proxies to Django
 ```
@@ -19,10 +19,10 @@ The public portfolio remains on `https://davyin.tech/`. Public requests to `/adm
 
 - Pi LAN address: `192.168.1.132`.
 - WireGuard interface: `wg0`, Pi tunnel address `10.66.66.1/24`, UDP port `51820`.
-- Mac peer: `10.66.66.2/32`.
+- Mac peer: `10.66.66.3/32` (dedicated Mac key). The older `.2` peer was shared with an iPhone and should be revoked after that device is disabled.
 - Endpoint: `vpn.davyin.tech:51820`. Its Cloudflare `A` record is DNS only, and the Pi's hourly DDNS updater now refreshes it.
 - Admin URL when the Mac tunnel is active: `http://10.66.66.1:8080/admin/`.
-- Mac's private profile is at `.wireguard/dawei-mac.conf` in the local repo checkout. Git ignores `.wireguard/`; the file is mode `600`. It contains a private key and must not be committed, pasted, or shared.
+- Mac's home and away profiles are `.wireguard/dawei-mac-home.conf` and `.wireguard/dawei-mac-away.conf`. Both use the unique `.3` peer; only activate one at a time. Git ignores `.wireguard/`; profiles are mode `600` and must not be committed, pasted, or shared.
 - The Pi service is enabled at boot. Nginx config is valid. Pi-side tests confirmed public homepage 200, public `/admin/` 404, VPN-source request to port 8080 200, and a non-VPN source to port 8080 403.
 - **Remote access:** the user tested from an external network and received HTTP 200 with a Django CSRF cookie from the admin login route. That confirms the remote VPN path reached Django. For a server-side handshake timestamp and counters, run `sudo wg show wg0` on the Pi.
 
@@ -33,11 +33,12 @@ The public portfolio remains on `https://davyin.tech/`. Public requests to `/adm
 | SSH target | `dawei@raspberrypi.local` |
 | Pi LAN IPv4 | `192.168.1.132` |
 | Pi VPN IPv4 | `10.66.66.1` |
-| Mac VPN IPv4 | `10.66.66.2` |
+| Mac VPN IPv4 | `10.66.66.3` |
+| Existing iPhone VPN IPv4 | `10.66.66.2` (revoke after disabling the old profile) |
 | WireGuard port | UDP `51820` |
 | Private admin listener | TCP `8080` on the VPN path; do not port-forward it |
 | Cloudflare VPN hostname | `vpn.davyin.tech`, DNS-only A record |
-| Mac profile | `/Users/dawei/fun/davvyin.github.io/.wireguard/dawei-mac.conf` |
+| Mac home/away profiles | `/Users/dawei/fun/davvyin.github.io/.wireguard/dawei-mac-home.conf` and `dawei-mac-away.conf` |
 
 Commands below are split into **Mac** and **Pi** sections. Commands in “fresh install” sections are reference instructions; do not regenerate keys over this live setup unless you intend to replace the current peer credentials.
 
@@ -136,7 +137,67 @@ chmod 600 /home/dawei/wireguard-mac.conf
 ROOT
 ```
 
-The Mac's `AllowedIPs` is a `/32` for only the Pi VPN address. Do not change it to `0.0.0.0/0` unless you intend to route all IPv4 traffic through the Pi. The server peer's `AllowedIPs` binds the Mac key to only `10.66.66.2`. Persistent keepalive sends a small periodic packet so the Mac's NAT mapping stays usable while it is away from home; WireGuard's [quick start](https://www.wireguard.com/quickstart/) explains the key and keepalive settings.
+In a **client profile**, `[Interface]` means this device (Mac address `.3` in the current profile), while `[Peer]` means the Pi server (`10.66.66.1`). In the Pi's `/etc/wireguard/wg0.conf`, the meanings are reversed: its `[Interface]` is the Pi and each `[Peer]` is a client device. Give every device its own key and tunnel IP; do not copy one client's profile to another.
+
+The Mac's `AllowedIPs` is a `/32` for only the Pi VPN address. Do not change it to `0.0.0.0/0` unless you intend to route all IPv4 traffic through the Pi. The server peer's `AllowedIPs` binds each client key to only that device's `/32` address. Persistent keepalive sends a small periodic packet so the Mac's NAT mapping stays usable while it is away from home; WireGuard's [quick start](https://www.wireguard.com/quickstart/) explains the key and keepalive settings.
+
+## Add a peer for another device
+
+The Pi's tunnel address `10.66.66.1` is reserved for the server. Pick an unused client address in `10.66.66.0/24`; the recorded setup currently has the legacy iPhone peer at `.2` and the dedicated Mac peer at `.3`. Use `.4` for the next device, or check `sudo wg show wg0` and choose another unused address. Never assign `.1` to a client or reuse a key/profile across devices.
+
+On the Pi, replace `tablet` and `10.66.66.4` below with the new device name and unused IP. This creates a new key and preshared key, adds the peer to the running interface without restarting WireGuard, and saves a one-time client profile in `/home/dawei/` with mode 600:
+
+```sh
+sudo bash <<'ROOT'
+set -eu
+umask 077
+CLIENT_NAME=tablet
+CLIENT_IP=10.66.66.4
+if wg show wg0 allowed-ips | grep -Fq "$CLIENT_IP/32"; then
+  echo "That client IP is already assigned; choose another one." >&2
+  exit 1
+fi
+CLIENT_PRIVATE=$(wg genkey)
+CLIENT_PUBLIC=$(printf '%s' "$CLIENT_PRIVATE" | wg pubkey)
+CLIENT_PSK=$(wg genpsk)
+SERVER_PUBLIC=$(wg show wg0 | awk '/public key:/ {print $3; exit}')
+PSK_FILE=$(mktemp /run/wg-peer-psk.XXXXXX)
+printf '%s\n' "$CLIENT_PSK" > "$PSK_FILE"
+chmod 600 "$PSK_FILE"
+cp -a /etc/wireguard/wg0.conf "/etc/wireguard/wg0.conf.before-${CLIENT_NAME}-$(date +%Y%m%d-%H%M%S)"
+cat >> /etc/wireguard/wg0.conf <<EOF
+
+[Peer]
+PublicKey = ${CLIENT_PUBLIC}
+PresharedKey = ${CLIENT_PSK}
+AllowedIPs = ${CLIENT_IP}/32
+EOF
+chmod 600 /etc/wireguard/wg0.conf
+wg set wg0 peer "$CLIENT_PUBLIC" preshared-key "$PSK_FILE" allowed-ips "$CLIENT_IP/32"
+rm -f "$PSK_FILE"
+cat > "/home/dawei/${CLIENT_NAME}.conf" <<EOF
+[Interface]
+PrivateKey = ${CLIENT_PRIVATE}
+Address = ${CLIENT_IP}/32
+
+[Peer]
+PublicKey = ${SERVER_PUBLIC}
+PresharedKey = ${CLIENT_PSK}
+Endpoint = vpn.davyin.tech:51820
+AllowedIPs = 10.66.66.1/32
+PersistentKeepalive = 25
+EOF
+chown dawei:dawei "/home/dawei/${CLIENT_NAME}.conf"
+chmod 600 "/home/dawei/${CLIENT_NAME}.conf"
+unset CLIENT_PRIVATE CLIENT_PSK
+printf 'Peer %s created for %s/32. Transfer /home/dawei/%s.conf securely.\n' "$CLIENT_PUBLIC" "$CLIENT_IP" "$CLIENT_NAME"
+wg show wg0
+ROOT
+```
+
+The generated profile's `[Interface]` is the new device; its `[Peer]` is the Pi. If the client is at home and the router lacks NAT loopback, change its `Endpoint` to `192.168.1.132:51820`; use `vpn.davyin.tech:51820` away from home. Transfer the profile with `scp`, store it only on that device with mode 600, and remove the temporary copy from the Pi after importing it. Never enable two profiles that share one peer key at the same time.
+
+To revoke a device, first identify its public key with `sudo wg show wg0`, then remove that peer from the running interface using `sudo wg set wg0 peer PEER_PUBLIC_KEY remove`. Also remove its matching `[Peer]` block from `/etc/wireguard/wg0.conf` with `sudoedit`, so it does not return after a reboot. Keep the Pi's `[Interface]` and all other device peers intact.
 
 ## 3. Enable WireGuard on the Pi
 
@@ -183,73 +244,7 @@ sudo chmod 600 /etc/cloudflare-ddns.env
 
 Create the initial DNS record in Cloudflare **DNS → Records**: Type `A`, Name `vpn`, IPv4 content equal to the current public IPv4, Proxy status **DNS only** (gray cloud), TTL Auto. After it exists, the updater changes its IP hourly. The updater intentionally edits existing A records only; it does not create or delete records. Never set the VPN record to Proxied.
 
-To create or reconcile this record from the Pi CLI, run the Python block below after `/etc/cloudflare-ddns.env` has the token and zone. It reads the token from the protected file rather than placing it in a command argument. It fails if the name is a CNAME or has multiple A records:
-
-```sh
-sudo python3 - <<'PY'
-from pathlib import Path
-import ipaddress
-import json
-import urllib.error
-import urllib.parse
-import urllib.request
-
-env = {
-    key: value
-    for line in Path('/etc/cloudflare-ddns.env').read_text().splitlines()
-    if '=' in line and not line.lstrip().startswith('#')
-    for key, value in [line.split('=', 1)]
-}
-token = env['CF_API_TOKEN'].strip()
-zone_name = env['CF_ZONE_NAME'].strip().rstrip('.')
-record_name = 'vpn.' + zone_name
-base = 'https://api.cloudflare.com/client/v4'
-headers = {
-    'Authorization': 'Bearer ' + token,
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-}
-
-def api(path, method='GET', payload=None):
-    data = None if payload is None else json.dumps(payload).encode()
-    req = urllib.request.Request(base + path, data=data, headers=headers, method=method)
-    try:
-        with urllib.request.urlopen(req, timeout=15) as response:
-            result = json.loads(response.read())
-    except urllib.error.HTTPError as exc:
-        raise SystemExit(f'Cloudflare API HTTP {exc.code}: {exc.read(500).decode(errors="replace")}')
-    if not result.get('success'):
-        raise SystemExit('Cloudflare API error: ' + '; '.join(e['message'] for e in result.get('errors', [])))
-    return result['result']
-
-ip = str(ipaddress.IPv4Address(urllib.request.urlopen('https://api4.ipify.org', timeout=15).read().decode().strip()))
-zones = api('/zones?' + urllib.parse.urlencode({'name': zone_name, 'status': 'active'}))
-if len(zones) != 1:
-    raise SystemExit(f'Expected exactly one active zone for {zone_name}; found {len(zones)}')
-zone_id = zones[0]['id']
-records = api(f'/zones/{zone_id}/dns_records?' + urllib.parse.urlencode({'name': record_name, 'per_page': 100}))
-if any(r['type'] != 'A' for r in records):
-    raise SystemExit(f'{record_name} already has a non-A record; resolve that DNS conflict first')
-if len(records) > 1:
-    raise SystemExit(f'{record_name} has multiple A records; resolve duplicates first')
-
-if records:
-    record = records[0]
-    payload = {k: record[k] for k in ('type', 'name', 'ttl', 'comment', 'tags', 'settings') if k in record}
-    payload.update(content=ip, proxied=False)
-    result = api(f'/zones/{zone_id}/dns_records/{record["id"]}', 'PUT', payload)
-    action = 'updated'
-else:
-    result = api(f'/zones/{zone_id}/dns_records', 'POST', {
-        'type': 'A', 'name': record_name, 'content': ip, 'ttl': 120,
-        'proxied': False, 'comment': 'WireGuard endpoint; managed by Raspberry Pi DDNS',
-    })
-    action = 'created'
-print(f'{action} {result["name"]} -> {result["content"]}; DNS-only={not result["proxied"]}')
-PY
-```
-
-The token needs Cloudflare Zone Read and DNS Edit for this zone. The Python snippet prints only the DNS record result, never the token. After creating the A record, set `CF_RECORD_NAMES` to include `vpn.davyin.tech` in the environment file and run the DDNS service once.
+The DDNS updater only updates existing records. Create the initial `vpn` A record in the Cloudflare dashboard, then ensure `CF_RECORD_NAMES` includes `vpn.davyin.tech` and run the updater once.
 
 Optional CLI check for the current public IPv4 and DNS answer:
 
@@ -330,19 +325,20 @@ Router configuration is vendor-specific and cannot be changed through a standard
 
 Do not forward TCP 51820, TCP 8080, Django/Gunicorn port 8000, or PostgreSQL port 5432. Only UDP 51820 is needed for this VPN. If the router's WAN address is private or differs from the current public IP, the ISP may use CGNAT; ordinary port forwarding will not work through CGNAT.
 
-## 7. Copy and activate the Mac profile with CLI
+## 7. Copy and activate the current Mac peer
 
-On the Mac, from the project checkout, ensure the local-only directory exists and retrieve the profile over SSH:
+The first-time setup above uses `.2` as its example client. The live Pi now reserves `.2` for the old iPhone peer and has a separate Mac peer at `.3`. On the Mac, turn off any old `.2` WireGuard profile first, then copy the `.3` profiles if they are not already in the local ignored directory:
 
 ```sh
 cd /Users/dawei/fun/davvyin.github.io
 mkdir -p .wireguard
-scp dawei@raspberrypi.local:/home/dawei/wireguard-mac.conf .wireguard/dawei-mac.conf
-chmod 600 .wireguard/dawei-mac.conf
-git check-ignore .wireguard/dawei-mac.conf
+scp dawei@raspberrypi.local:/home/dawei/dawei-mac-home.conf .wireguard/dawei-mac-home.conf
+scp dawei@raspberrypi.local:/home/dawei/dawei-mac-away.conf .wireguard/dawei-mac-away.conf
+chmod 600 .wireguard/dawei-mac-home.conf .wireguard/dawei-mac-away.conf
+git check-ignore .wireguard/dawei-mac-home.conf
 ```
 
-The final command should report `.wireguard/` as ignored. Never commit the profile. The Mac profile contains its private key and shared preshared key.
+The final command should report `.wireguard/` as ignored. Never commit or share the profiles; both contain the Mac's private key and preshared key. After securely copying them, delete the temporary copies from `/home/dawei` on the Pi.
 
 Install the CLI with Homebrew:
 
@@ -353,22 +349,22 @@ command -v wg-quick
 command -v wireguard-go
 ```
 
-Homebrew's `wireguard-tools` formula includes `wg`/`wg-quick` and depends on the userspace `wireguard-go` implementation. The [official WireGuard install page](https://www.wireguard.com/install/) lists this Mac CLI option. Bring the tunnel up and test the admin route:
+Homebrew's `wireguard-tools` formula includes `wg`/`wg-quick` and depends on the userspace `wireguard-go` implementation. The [official WireGuard install page](https://www.wireguard.com/install/) lists this Mac CLI option. At home, activate the home endpoint and test the admin route:
 
 ```sh
 cd /Users/dawei/fun/davvyin.github.io
-sudo "$(brew --prefix)/bin/wg-quick" up "$PWD/.wireguard/dawei-mac.conf"
+sudo "$(brew --prefix)/bin/wg-quick" up "$PWD/.wireguard/dawei-mac-home.conf"
 sudo "$(brew --prefix)/bin/wg" show
 curl --connect-timeout 5 -I http://10.66.66.1:8080/admin/login/
 ```
 
-When finished, stop the tunnel:
+The home profile uses `192.168.1.132:51820`; the away profile uses `vpn.davyin.tech:51820`. Only enable one profile at a time. When leaving home, stop the home profile and start the away profile. When finished, stop the active tunnel:
 
 ```sh
-sudo "$(brew --prefix)/bin/wg-quick" down "$PWD/.wireguard/dawei-mac.conf"
+sudo "$(brew --prefix)/bin/wg-quick" down "$PWD/.wireguard/dawei-mac-home.conf"
 ```
 
-The CLI tunnel is active until you stop it or restart the Mac. To use a GUI instead, install the official [WireGuard macOS app](https://www.wireguard.com/install/), import `.wireguard/dawei-mac.conf`, and turn the tunnel on/off in the app.
+The CLI tunnel is active until you stop it or restart the Mac. To use a GUI instead, install the official [WireGuard macOS app](https://www.wireguard.com/install/), import the matching home or away profile, and turn only that profile on. Do not keep the old `.2` Mac profile enabled.
 
 ## 8. Verify end-to-end connectivity
 
@@ -435,4 +431,4 @@ If a peer profile is lost or exposed, remove that peer from `/etc/wireguard/wg0.
 
 ## Deployment history
 
-For this deployment, WireGuard tools were installed on the Pi, `wg0` was configured at `10.66.66.1/24`, a separate Mac peer at `10.66.66.2/32` was generated, and the service was enabled at boot. The Cloudflare DNS-only `vpn.davyin.tech` A record was created and added to the hourly updater. Nginx's public `/admin` routes were blocked and a source-filtered private listener was added; Django host/CSRF settings were extended for the private URL. Tailscale was removed before joining any account. The user later confirmed the router forwarding and successfully reached the admin login route from an external network.
+For this deployment, WireGuard tools were installed on the Pi, `wg0` was configured at `10.66.66.1/24`, the original `.2` peer was used by an iPhone and later reused on the Mac, and a dedicated Mac peer `.3` was added to prevent that collision. The Pi has home and away Mac profiles using the `.3` key. The Cloudflare DNS-only `vpn.davyin.tech` A record is managed by the hourly updater. Nginx's public `/admin` routes are blocked and the private listener is limited to the WireGuard subnet. The user confirmed the router forwarding and successfully reached the admin login route from an external network.
