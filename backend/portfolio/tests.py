@@ -1,5 +1,5 @@
 import json
-import io
+import queue
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -116,8 +116,6 @@ class AdminTests(TestCase):
         self.assertContains(self.client.get("/admin/"), "Open staff-only live camera view")
 
     def test_camera_stream_is_staff_only_and_serves_multipart_jpegs(self):
-        from .camera import start_stream
-
         stream_path = "/admin/camera/stream.mjpg"
         with patch("portfolio.views.start_stream") as start:
             self.assertEqual(self.client.get(stream_path).status_code, 302)
@@ -126,17 +124,9 @@ class AdminTests(TestCase):
         self.client.force_login(self.staff)
         jpeg1 = b"\xff\xd8first-frame\xff\xd9"
         jpeg2 = b"\xff\xd8second-frame\xff\xd9"
-
-        class FakeProcess:
-            stdout = io.BytesIO(b"noise" + jpeg1 + jpeg2)
-
-            @staticmethod
-            def poll():
-                return 0
-
-        with patch("portfolio.camera.shutil.which", return_value="/usr/bin/rpicam-vid"), patch(
-            "portfolio.camera.subprocess.Popen", return_value=FakeProcess()
-        ) as popen:
+        with patch("portfolio.views.start_stream", return_value=(object(), lambda: None)), patch(
+            "portfolio.views.multipart_frames", return_value=iter([b"--frame\r\n" + jpeg1, b"--frame\r\n" + jpeg2])
+        ), patch("portfolio.views.stop_stream"):
             response = self.client.get(stream_path)
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response["Content-Type"], "multipart/x-mixed-replace; boundary=frame")
@@ -146,11 +136,10 @@ class AdminTests(TestCase):
             self.assertIn(jpeg1, body)
             self.assertIn(jpeg2, body)
             response.close()
-            self.assertEqual(popen.call_args.args[0][0], "/usr/bin/rpicam-vid")
 
     def test_camera_stream_reports_missing_camera_tool(self):
         self.client.force_login(self.staff)
-        with patch("portfolio.camera.shutil.which", return_value=None):
+        with patch("portfolio.views.start_stream", return_value=(None, None)):
             response = self.client.get("/admin/camera/stream.mjpg")
         self.assertEqual(response.status_code, 503)
 
@@ -208,6 +197,88 @@ class AdminTests(TestCase):
         self.assertIn("preview_link", response.context["adminform"].form.errors)
         project.refresh_from_db()
         self.assertNotEqual(project.preview_link, data["preview_link"])
+
+
+class CameraBroadcastTests(TestCase):
+    class Pipe:
+        def __init__(self):
+            self.chunks = queue.Queue()
+
+        def read(self, size):
+            return self.chunks.get()
+
+        def close(self):
+            self.chunks.put(b"")
+
+    class Process:
+        def __init__(self):
+            self.stdout = CameraBroadcastTests.Pipe()
+            self.returncode = None
+
+        def poll(self):
+            return self.returncode
+
+        def terminate(self):
+            self.returncode = -15
+            self.stdout.close()
+
+        def wait(self, timeout=None):
+            return self.returncode
+
+        def kill(self):
+            self.returncode = -9
+            self.stdout.close()
+
+    def test_two_viewers_share_one_capture_and_receive_each_frame(self):
+        from camera.broadcast import _Broadcaster
+
+        broadcaster = _Broadcaster()
+        process = self.Process()
+        frames = [b"\xff\xd8frame-one\xff\xd9", b"\xff\xd8frame-two\xff\xd9"]
+        with patch("camera.broadcast.camera_command", return_value=["rpicam-vid"]), patch(
+            "camera.broadcast.subprocess.Popen", return_value=process
+        ) as popen:
+            first = broadcaster.subscribe()
+            second = broadcaster.subscribe()
+            self.assertIsNotNone(first)
+            self.assertIsNotNone(second)
+            self.assertEqual(popen.call_count, 1)
+
+            for expected in frames:
+                process.stdout.chunks.put(expected)
+                with broadcaster.condition:
+                    self.assertTrue(broadcaster.condition.wait_for(
+                        lambda: broadcaster.latest_frame == expected,
+                        timeout=2,
+                    ))
+                self.assertEqual(first.next_frame(), expected)
+            self.assertEqual(second.next_frame(), expected)
+
+            broadcaster.unsubscribe(first)
+            self.assertIsNotNone(broadcaster.process)
+            self.assertIsNone(process.returncode)
+            broadcaster.unsubscribe(second)
+            self.assertEqual(process.returncode, -15)
+
+    def test_slow_viewer_skips_stale_frames(self):
+        from camera.broadcast import _Broadcaster
+
+        broadcaster = _Broadcaster()
+        process = self.Process()
+        old = b"\xff\xd8old\xff\xd9"
+        latest = b"\xff\xd8new\xff\xd9"
+        with patch("camera.broadcast.camera_command", return_value=["rpicam-vid"]), patch(
+            "camera.broadcast.subprocess.Popen", return_value=process
+        ):
+            subscription = broadcaster.subscribe()
+            process.stdout.chunks.put(old + latest)
+            with broadcaster.condition:
+                self.assertTrue(broadcaster.condition.wait_for(
+                    lambda: broadcaster.latest_frame == latest,
+                    timeout=2,
+                ))
+            self.assertEqual(subscription.next_frame(), latest)
+            broadcaster.unsubscribe(subscription)
 
 
 class RoutingTests(TestCase):

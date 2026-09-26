@@ -4,6 +4,8 @@ Build React on your Mac, then run Django, PostgreSQL, Gunicorn, and Nginx as nat
 
 **Already running the site? Start at [Updating an existing installation](#updating-an-existing-installation).** The recorded `/srv/portfolio/app` installation is a copied snapshot, so `git pull` in another checkout does not update it. First-time setup below is for a fresh installation.
 
+For normal updates, use the [one-command deployment pipeline](COMMANDS.md): `npm run deploy:backend`, `npm run deploy:frontend`, or `npm run deploy:all`. It automates testing/building, SSH upload, backups, migrations, static collection, restart, and verification.
+
 ## How the application is built and served
 
 ```text
@@ -26,7 +28,7 @@ LAN browser → Nginx (PI_LAN_IP:80) → Gunicorn (127.0.0.1:8000)
 - **Django 5.2:** serves public routes, the read-only JSON API, health endpoint, and admin. React fetches `/api/content/` from the same origin.
 - **PostgreSQL:** stores editable content and accounts. Migrations create tables and import original content once; later deployments preserve edits. Copying source does not transfer your Mac's SQLite content or passwords.
 - **Static assets:** `collectstatic` collects React bundles, Django admin assets, and `src/assets/` into `backend/staticfiles/`. WhiteNoise serves them through Gunicorn; Nginx proxies requests.
-- **systemd:** starts Gunicorn at boot as Linux user `portfolio`. The supplied unit uses one worker, two threads, and a 350 MB memory limit. Install the Python virtual environment on the Pi; Mac Python packages are not portable to Linux/ARM.
+- **systemd:** starts Gunicorn at boot as Linux user `portfolio`. The supplied unit uses one worker, four threads, and a 350 MB memory limit. One worker keeps the in-process camera broadcaster singular; four threads allow concurrent streams while leaving capacity for admin requests. Install the Python virtual environment on the Pi; Mac Python packages are not portable to Linux/ARM.
 - **Camera:** the optional staff-only `/admin/camera/` page uses `rpicam-vid` on the Pi.
 
 GitHub Pages cannot execute Django or PostgreSQL. Pushing to GitHub alone does not deploy this native installation.
@@ -238,6 +240,8 @@ The smoke test checks routes, API, static assets, missing pages, and a CSRF-prot
 
 ## Updating an existing installation
 
+**Recommended:** use `npm run deploy:backend`, `npm run deploy:frontend`, or `npm run deploy:all` from your Mac. See [command options, logs, and recovery](COMMANDS.md). The steps below remain the manual fallback; do not run them at the same time as the pipeline.
+
 Use this for the recorded Pi deployment. `/home/dawei/davvyin.github.io` was an older frontend checkout; `/srv/portfolio/app` is the running application. There is no deployment-on-push automation in this workflow.
 
 1. **Mac:** repeat [step 2](#2-build-package-and-upload) to test, build, package, and upload.
@@ -393,7 +397,7 @@ sudo -u portfolio rpicam-hello --list-cameras
 sudo systemctl restart portfolio
 ```
 
-See the official [camera documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html) for hardware setup. Sign in as staff and open `/admin/camera/`. The MJPEG stream runs at 1280×720/15 fps with one stream per Gunicorn process. Keep the supplied one-worker configuration to preserve that limit. Django disables Nginx stream buffering with `X-Accel-Buffering: no`. The generic smoke test does not test camera hardware.
+See the official [camera documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html) for hardware setup. Sign in as staff and open `/admin/camera/`. The default broadcaster captures MJPEG at 1280×720/15 fps once and shares the latest frames with all active viewers; slow viewers skip stale frames instead of building a queue. It stops capture when the last viewer disconnects. This reduces camera work and latency while keeping bandwidth proportional to the number of viewers. It is an in-process broadcaster, so keep one Gunicorn worker. Four Gunicorn threads allow several camera streams plus admin requests; total simultaneous requests remain bounded by the thread count. The previous exclusive one-viewer implementation remains available by setting `CAMERA_STREAM_MODE=exclusive` in `/srv/portfolio/app/.env` and restarting `portfolio`. Django disables Nginx stream buffering with `X-Accel-Buffering: no`. The generic smoke test does not test camera hardware.
 
 ## Optional public HTTPS with Cloudflare Tunnel
 

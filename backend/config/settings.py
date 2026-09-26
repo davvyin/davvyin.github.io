@@ -96,6 +96,9 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
+CAMERA_STREAM_MODE = os.getenv("CAMERA_STREAM_MODE", "broadcast").strip().lower()
+if CAMERA_STREAM_MODE not in {"broadcast", "exclusive"}:
+    raise ImproperlyConfigured("CAMERA_STREAM_MODE must be 'broadcast' or 'exclusive'.")
 # Enable only behind a proxy that replaces client-supplied forwarding headers.
 if env_bool("DJANGO_TRUST_PROXY"):
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

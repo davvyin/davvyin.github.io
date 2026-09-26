@@ -5,7 +5,10 @@ from django.http import FileResponse, HttpResponse, JsonResponse, StreamingHttpR
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe
 from django.shortcuts import render
-from .camera import multipart_frames, start_stream, stop_stream
+if settings.CAMERA_STREAM_MODE == "exclusive":
+    from camera.exclusive import multipart_frames, start_stream, stop_stream
+else:
+    from camera.broadcast import multipart_frames, start_stream, stop_stream
 from .models import Experience, Profile, Project, SiteText, SocialLink, Technology
 
 
@@ -71,19 +74,19 @@ def camera_page(request):
 @staff_member_required
 @never_cache
 def camera_stream(request):
-    process, release = start_stream()
-    if process is None:
+    stream, release = start_stream()
+    if stream is None:
         return HttpResponse(
-            "The camera is unavailable or another staff session is using it.",
+            "The camera is unavailable. Check that it is connected and rpicam-vid is installed.",
             status=503,
             content_type="text/plain",
         )
     response = StreamingHttpResponse(
-        multipart_frames(process, release),
+        multipart_frames(stream, release),
         content_type="multipart/x-mixed-replace; boundary=frame",
     )
     response["X-Accel-Buffering"] = "no"
     response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     # Also stop the camera if the client disconnects before reading the stream.
-    response._resource_closers.append(lambda: stop_stream(process, release))
+    response._resource_closers.append(lambda: stop_stream(stream, release))
     return response

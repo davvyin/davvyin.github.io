@@ -14,6 +14,13 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "deploy:backend": "python3 deploy/raspberrypi/deploy.py backend",
+    "deploy:frontend": "python3 deploy/raspberrypi/deploy.py frontend",
+    "deploy:all": "python3 deploy/raspberrypi/deploy.py all",
+    "deploy:backend:fast": "python3 deploy/raspberrypi/deploy.py backend --fast",
+    "deploy:frontend:fast": "python3 deploy/raspberrypi/deploy.py frontend --fast",
+    "deploy:all:fast": "python3 deploy/raspberrypi/deploy.py all --fast",
+    "test:deploy": "python3 -m unittest discover -s deploy/raspberrypi -p 'test_deploy.py'",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

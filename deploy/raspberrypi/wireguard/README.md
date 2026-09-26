@@ -13,7 +13,7 @@ Mac WireGuard client
                       └─ Nginx permits only 10.66.66.0/24, then proxies to Django
 ```
 
-The public portfolio remains on `https://davyin.tech/`. Public requests to `/admin` and every `/admin/*` path, including the camera page and stream, receive 404. The private Nginx listener is on port 8080 and only allows traffic sourced from the WireGuard subnet. WireGuard encrypts the connection between the Mac and Pi, so the private listener uses HTTP inside that tunnel.
+The public portfolio remains on `https://davyin.tech/`. Public requests to `/admin` and every `/admin/*` path, including the camera page and stream, receive 404. The private Nginx listener is on port 8080 and only allows traffic sourced from the WireGuard subnet. WireGuard encrypts the connection between the Mac and Pi, so the private listener uses HTTP inside that tunnel. The camera broadcaster shares one capture among concurrently authenticated admin viewers; it is an in-process implementation and requires the deployed single Gunicorn worker.
 
 ## Current deployment and what remains
 

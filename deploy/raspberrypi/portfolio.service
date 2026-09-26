@@ -11,7 +11,7 @@ WorkingDirectory=/srv/portfolio/app/backend
 EnvironmentFile=/srv/portfolio/app/.env
 Environment=PYTHONDONTWRITEBYTECODE=1
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/srv/portfolio/venv/bin/gunicorn config.wsgi:application --bind 127.0.0.1:8000 --workers 1 --threads 2 --timeout 60 --max-requests 1000 --max-requests-jitter 100 --access-logfile - --error-logfile -
+ExecStart=/srv/portfolio/venv/bin/gunicorn config.wsgi:application --bind 127.0.0.1:8000 --workers 1 --threads 4 --timeout 60 --max-requests 1000 --max-requests-jitter 100 --access-logfile - --error-logfile -
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true

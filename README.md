@@ -4,6 +4,10 @@ The original React/Tailwind frontend is served by Django 5.2 LTS. Content is sto
 
 ## Local development
 
+Update the existing Pi with `npm run deploy:backend`, `npm run deploy:frontend`, or `npm run deploy:all`. See the [deployment command guide](deploy/raspberrypi/COMMANDS.md) for setup, previews, backups, and recovery.
+
+For a fast update without tests or backups, use `npm run deploy:backend:fast`, `npm run deploy:frontend:fast`, or `npm run deploy:all:fast`. Fast mode keeps builds, required migrations, restart, and a basic health check, but has no automatic rollback after files change. See [fast deployment details](deploy/raspberrypi/COMMANDS.md#fast-deployments).
+
 For the complete build-to-Pi walkthrough, see [Raspberry Pi deployment](deploy/raspberrypi/README.md). It covers architecture, building on your Mac, transferring a release, first-time PostgreSQL/Nginx/systemd setup, updates, backups, recovery, and optional public HTTPS. If your Pi already serves the site, start with [updating an existing installation](deploy/raspberrypi/README.md#updating-an-existing-installation).
 
 On the hosted Pi, Django admin is reachable only through WireGuard at `http://10.66.66.1:8080/admin/`; the public `https://davyin.tech/admin/*` paths stay hidden. The production page's footer labels this as **Admin (VPN)** and links to that private address. Connect the VPN before using it. See the [VPN setup and access guide](deploy/raspberrypi/wireguard/README.md). In local development, the footer continues to use the local `/admin/` route.
