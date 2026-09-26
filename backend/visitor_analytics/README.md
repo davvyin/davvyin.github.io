@@ -50,9 +50,12 @@ On the Pi, add to `/srv/portfolio/app/.env`:
 ANALYTICS_ENABLED=true
 ANALYTICS_TRUSTED_PROXIES=127.0.0.1/32,::1/128
 ANALYTICS_RETENTION_DAYS=90
+DJANGO_TRUST_PROXY=true
 ```
 
 `ANALYTICS_TRUSTED_PROXIES` defaults to empty. Django then records its direct connection peer and ignores forwarded IP headers. For this native Pi setup, Gunicorn binds to loopback and Nginx must overwrite `X-Real-IP` with the verified visitor address. Never trust arbitrary incoming `X-Forwarded-For` or `CF-Connecting-IP` directly in Django. Other deployments must supply only their actual, trusted proxy CIDRs.
+
+`DJANGO_TRUST_PROXY=true` also lets Django use Nginx's overwritten `X-Forwarded-Proto` header for the collector's same-origin check. Keep the private VPN listener's value `http` and the public HTTPS listener's value `$scheme`; preserve the existing private-admin HTTP/secure-cookie settings.
 
 ### Restore visitor IPs behind Cloudflare
 
@@ -132,6 +135,8 @@ sudo journalctl -u portfolio-analytics-prune.service --no-pager -n 20
 `ANALYTICS_RETENTION_DAYS` accepts 1–3650 (default 90). Cleanup deletes only analytics records, not users or website content. The daily schedule allows up to roughly one extra day before removal. Database backups and Nginx logs have their own retention. Full IPs are retained for the requested IP list; describe this collection in your site's privacy information. To pause collection, set `ANALYTICS_ENABLED=false` and restart `portfolio`; existing reports remain available. `REACT_APP_ANALYTICS_ENABLED=false` also disables the client tracker at frontend build time.
 
 ## Verify
+
+If a phone visit does not change the dashboard, use a Private/Incognito tab on the **public website** and then click **Refresh stats** in analytics with the IP filter cleared. Signed-in staff sessions and privacy opt-outs intentionally return 204 without storing a page view, so a 204 response alone does not prove that a new row was saved. A shared home Wi-Fi address also will not increase the unique-IP total, although it should increase page views. If every recorded address is `127.0.0.1`, finish the proxy setup above; the old rows cannot be retroactively assigned their real visitor addresses.
 
 1. Visit the public site from a browser without an admin session; navigate between two pages. In browser Network tools, the page-view POSTs should return 204.
 2. As the superuser, open analytics over the VPN. Confirm those pages and the expected visitor IP appear. `127.0.0.1` or a Cloudflare edge IP indicates an incomplete proxy setup.
