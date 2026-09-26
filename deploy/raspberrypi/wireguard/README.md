@@ -7,7 +7,7 @@ This is the detailed setup and operations guide for the self-hosted WireGuard VP
 ```text
 Mac WireGuard client
   └─ encrypted UDP to vpn.davyin.tech:51820
-       └─ router forwards UDP 51820 to Pi 192.168.1.132
+       └─ router forwards UDP 51820 to Pi 192.168.1.205
             └─ WireGuard wg0: Pi 10.66.66.1 ↔ Mac 10.66.66.3
                  └─ Mac opens http://10.66.66.1:8080/admin/ (and /admin/camera/)
                       └─ Nginx permits only 10.66.66.0/24, then proxies to Django
@@ -17,7 +17,7 @@ The public portfolio remains on `https://davyin.tech/`. Public requests to `/adm
 
 ## Current deployment and what remains
 
-- Pi LAN address: `192.168.1.132`.
+- Pi LAN address: `192.168.1.205` on Ethernet (`eth0`). Wi-Fi is disconnected with autoconnect disabled.
 - WireGuard interface: `wg0`, Pi tunnel address `10.66.66.1/24`, UDP port `51820`.
 - Mac peer: `10.66.66.3/32` (dedicated Mac key). The older `.2` peer was shared with an iPhone and should be revoked after that device is disabled.
 - Endpoint: `vpn.davyin.tech:51820`. Its Cloudflare `A` record is DNS only, and the Pi's hourly DDNS updater now refreshes it.
@@ -31,7 +31,7 @@ The public portfolio remains on `https://davyin.tech/`. Public requests to `/adm
 | Item | Value |
 | --- | --- |
 | SSH target | `dawei@raspberrypi.local` |
-| Pi LAN IPv4 | `192.168.1.132` |
+| Pi LAN IPv4 | `192.168.1.205` |
 | Pi VPN IPv4 | `10.66.66.1` |
 | Mac VPN IPv4 | `10.66.66.3` |
 | Existing iPhone VPN IPv4 | `10.66.66.2` (revoke after disabling the old profile) |
@@ -195,7 +195,7 @@ wg show wg0
 ROOT
 ```
 
-The generated profile's `[Interface]` is the new device; its `[Peer]` is the Pi. If the client is at home and the router lacks NAT loopback, change its `Endpoint` to `192.168.1.132:51820`; use `vpn.davyin.tech:51820` away from home. Transfer the profile with `scp`, store it only on that device with mode 600, and remove the temporary copy from the Pi after importing it. Never enable two profiles that share one peer key at the same time.
+The generated profile's `[Interface]` is the new device; its `[Peer]` is the Pi. If the client is at home and the router lacks NAT loopback, change its `Endpoint` to `192.168.1.205:51820`; use `vpn.davyin.tech:51820` away from home. Transfer the profile with `scp`, store it only on that device with mode 600, and remove the temporary copy from the Pi after importing it. Never enable two profiles that share one peer key at the same time.
 
 To revoke a device, first identify its public key with `sudo wg show wg0`, then remove that peer from the running interface using `sudo wg set wg0 peer PEER_PUBLIC_KEY remove`. Also remove its matching `[Peer]` block from `/etc/wireguard/wg0.conf` with `sudoedit`, so it does not return after a reboot. Keep the Pi's `[Interface]` and all other device peers intact.
 
@@ -314,13 +314,13 @@ sudo ufw allow in on wg0 from 10.66.66.0/24 to any port 8080 proto tcp
 
 ## 6. Router setup (not a generic CLI operation)
 
-Router configuration is vendor-specific and cannot be changed through a standard Linux command on the Pi. Use the router's web admin page or its own vendor CLI/API. First reserve `192.168.1.132` for the Pi's Wi-Fi MAC address. Then add exactly this port-forward:
+Router configuration is vendor-specific and cannot be changed through a standard Linux command on the Pi. Use the router's web admin page or its own vendor CLI/API. First reserve `192.168.1.205` for the Pi's Ethernet MAC address (`B8:27:EB:0F:AA:5E`). Then add exactly this port-forward:
 
 | Router field | Value |
 | --- | --- |
 | Protocol | UDP |
 | External/WAN port | `51820` |
-| Internal/LAN address | `192.168.1.132` |
+| Internal/LAN address | `192.168.1.205` |
 | Internal port | `51820` |
 
 Do not forward TCP 51820, TCP 8080, Django/Gunicorn port 8000, or PostgreSQL port 5432. Only UDP 51820 is needed for this VPN. If the router's WAN address is private or differs from the current public IP, the ISP may use CGNAT; ordinary port forwarding will not work through CGNAT.
@@ -358,7 +358,7 @@ sudo "$(brew --prefix)/bin/wg" show
 curl --connect-timeout 5 -I http://10.66.66.1:8080/admin/login/
 ```
 
-The home profile uses `192.168.1.132:51820`; the away profile uses `vpn.davyin.tech:51820`. Only enable one profile at a time. When leaving home, stop the home profile and start the away profile. When finished, stop the active tunnel:
+The home profile uses `192.168.1.205:51820`; the away profile uses `vpn.davyin.tech:51820`. Only enable one profile at a time. When leaving home, stop the home profile and start the away profile. When finished, stop the active tunnel:
 
 ```sh
 sudo "$(brew --prefix)/bin/wg-quick" down "$PWD/.wireguard/dawei-mac-home.conf"
@@ -411,13 +411,62 @@ The Pi passed its local HTTP and config checks. The user subsequently confirmed 
 
 | Symptom | Likely cause and check |
 | --- | --- |
-| No latest handshake | Confirm Mac tunnel is on; check `vpn.davyin.tech` resolves to current public IPv4; confirm router forwards UDP 51820 to `192.168.1.132`; check ISP/CGNAT. |
+| No latest handshake | Confirm Mac tunnel is on; check `vpn.davyin.tech` resolves to current public IPv4; confirm router forwards UDP 51820 to `192.168.1.205`; check ISP/CGNAT. |
 | Handshake works but admin times out | Check `wg show`, Nginx status, port-8080 source filter, `DJANGO_ALLOWED_HOSTS`, and Django logs. |
 | Django returns 400 | Include `10.66.66.1` in `DJANGO_ALLOWED_HOSTS` (without scheme/port), then restart `portfolio`. |
 | CSRF failure on admin login | Include `http://10.66.66.1:8080` in `DJANGO_CSRF_TRUSTED_ORIGINS`, then restart `portfolio`. |
 | Nginx rejects config | Run `sudo nginx -t`; correct the indicated file/line before reloading. |
 | Public admin still responds | Check both exact `/admin` and prefix `/admin/` locations are inside the active HTTPS server; run `sudo nginx -T` and reload after `nginx -t`. |
-| VPN stopped after reboot | Run `sudo systemctl enable --now wg-quick@wg0`, then inspect `journalctl -u wg-quick@wg0`. |
+| VPN stopped after reboot | Check `systemctl is-enabled wg-quick@wg0`, `systemctl status wg-quick@wg0 --no-pager`, and `journalctl -b -u wg-quick@wg0`. If disabled or stopped, run `sudo systemctl enable --now wg-quick@wg0`. `active (exited)` is normal: the WireGuard interface continues running in the kernel. |
+| VPN service is active but clients cannot connect after a network change | Check `ip -br address` and `ip route`. Match the router's UDP 51820 destination and the home client's endpoint to the Pi's active LAN address. Ethernet and Wi-Fi have different MAC addresses and can receive different DHCP leases. |
+
+### Ethernet connection and boot checks
+
+NetworkManager manages the physical connections; systemd's `wg-quick@wg0` manages the VPN. NetworkManager may show `wg0` with autoconnect disabled even though its systemd service is enabled at boot. `active (exited)` is the expected systemd status for WireGuard.
+
+The current Pi uses Ethernet at `192.168.1.205`. Its Wi-Fi connection previously used `192.168.1.132`. Ethernet autoconnect is enabled; Wi-Fi autoconnect is disabled. Inspect the configuration after a reboot:
+
+```sh
+nmcli --colors no -f NAME,TYPE,DEVICE,AUTOCONNECT connection show
+ip -br address
+ip route
+ip -6 route show default
+systemctl is-enabled wg-quick@wg0
+sudo journalctl -b -u wg-quick@wg0 --no-pager
+sudo wg show wg0
+```
+
+Both default routes should use `eth0`. The saved Ethernet profile is `Wired connection 1`; the saved Wi-Fi profile is `davvvv`. To reproduce the Ethernet setup:
+
+```sh
+sudo nmcli connection modify 'Wired connection 1' connection.autoconnect yes ipv4.route-metric 100 ipv6.route-metric 100
+sudo nmcli connection up 'Wired connection 1'
+```
+
+Open a second SSH session to `dawei@192.168.1.205` and verify it works before disconnecting Wi-Fi:
+
+```sh
+sudo nmcli connection modify davvvv connection.autoconnect no ipv4.route-metric 600 ipv6.route-metric 600
+sudo nmcli connection down davvvv
+```
+
+Reserve `192.168.1.205` in the router for Ethernet MAC `B8:27:EB:0F:AA:5E`. Forward UDP 51820 and the website's TCP 443 (also TCP 80 if configured) to this address. Keep port 8080 private. Django's `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS` in `/srv/portfolio/app/.env`, Nginx's public `listen` addresses, and home VPN profile endpoints were updated for `.205`. The away endpoint remains `vpn.davyin.tech:51820`; the private admin address remains `http://10.66.66.1:8080/admin/`.
+
+Editing a VPN profile file does not change an already running or previously imported client tunnel. Restart the CLI tunnel using its updated file, or edit/reimport the home profile in the WireGuard app. A home client's endpoint must now be `192.168.1.205:51820`.
+
+Verify the public health check and, with the client VPN active, the private login page:
+
+```sh
+curl --fail https://davyin.tech/healthz/
+curl --fail -o /dev/null -w '%{http_code}\n' http://10.66.66.1:8080/admin/login/
+```
+
+To restore Wi-Fi from a working Ethernet session or local console:
+
+```sh
+sudo nmcli connection modify davvvv connection.autoconnect yes
+sudo nmcli connection up davvvv
+```
 
 To apply a WireGuard server config edit:
 

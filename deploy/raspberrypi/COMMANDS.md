@@ -86,7 +86,7 @@ npm run deploy:backend -- --host dawei@10.66.66.1
 For a different installation or admin origin:
 
 ```sh
-npm run deploy:all -- --host dawei@192.168.1.132 --health-url http://192.168.1.132
+npm run deploy:all -- --host dawei@192.168.1.205 --health-url http://192.168.1.205
 ```
 
 Only use that example health URL when it actually serves your admin route; the current Pi uses the private port-8080 origin. You can also set `PI_HOST` and `PI_HEALTH_URL` in your shell. No secrets belong in these variables.

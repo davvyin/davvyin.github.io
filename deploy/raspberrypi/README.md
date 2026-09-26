@@ -40,7 +40,7 @@ GitHub Pages cannot execute Django or PostgreSQL. Pushing to GitHub alone does n
 | Value | Example | Meaning |
 | --- | --- | --- |
 | SSH login | `dawei@raspberrypi.local` | Your normal Pi user, with sudo access |
-| Pi private IPv4 | `192.168.1.132` | Confirm in your router/Pi |
+| Pi private IPv4 | `192.168.1.205` | Confirm in your router/Pi |
 | Application | `/srv/portfolio/app` | Running deployment snapshot |
 | Python environment | `/srv/portfolio/venv` | Pi-installed dependencies |
 | Linux user / DB role | `portfolio` | Service identity, separate from the admin login |
@@ -60,7 +60,7 @@ For a new SD card, use Raspberry Pi Imager to install Raspberry Pi OS Lite (64-b
 ssh dawei@raspberrypi.local
 ```
 
-If `.local` does not resolve, use the private IP from your router, for example `ssh dawei@192.168.1.132`.
+If `.local` does not resolve, use the private IP from your router, for example `ssh dawei@192.168.1.205`.
 
 **Pi:**
 
@@ -168,8 +168,8 @@ Paste the following, replacing the secret and both IP addresses. Replace `raspbe
 DJANGO_DEBUG=false
 DJANGO_SECRET_KEY=REPLACE_WITH_GENERATED_SECRET
 DATABASE_URL=postgresql://portfolio@/portfolio?host=/var/run/postgresql
-DJANGO_ALLOWED_HOSTS=raspberrypi.local,192.168.1.132,localhost,127.0.0.1
-DJANGO_CSRF_TRUSTED_ORIGINS=http://raspberrypi.local,http://192.168.1.132
+DJANGO_ALLOWED_HOSTS=raspberrypi.local,192.168.1.205,localhost,127.0.0.1
+DJANGO_CSRF_TRUSTED_ORIGINS=http://raspberrypi.local,http://192.168.1.205
 DJANGO_SECURE_SSL_REDIRECT=false
 DJANGO_SESSION_COOKIE_SECURE=false
 DJANGO_CSRF_COOKIE_SECURE=false
@@ -211,7 +211,7 @@ Expect an active service and `{"status": "ok"}`. Gunicorn binds only to loopback
 **Pi:** set your real private IPv4 below:
 
 ```sh
-PI_LAN_IP=192.168.1.132
+PI_LAN_IP=192.168.1.205
 sed "s/PI_LAN_IP/$PI_LAN_IP/g" /srv/portfolio/app/deploy/raspberrypi/nginx-lan.conf.example > /tmp/portfolio-nginx.conf
 sudo install -m 644 /tmp/portfolio-nginx.conf /etc/nginx/sites-available/portfolio
 sudo ln -sfn /etc/nginx/sites-available/portfolio /etc/nginx/sites-enabled/portfolio
@@ -225,12 +225,12 @@ If you changed the hostname, edit `server_name` in `/etc/nginx/sites-available/p
 
 ### 9. Verify the deployment
 
-**Mac or another LAN device:** open `http://192.168.1.132/` or `http://raspberrypi.local/`. Visit `/about`, `/projects`, `/technologies`, and `/contact`, then refresh each route. Log in at `/admin/`, edit one text label, save, and reload the public page to confirm the database edit appears.
+**Mac or another LAN device:** open `http://192.168.1.205/` or `http://raspberrypi.local/`. Visit `/about`, `/projects`, `/technologies`, and `/contact`, then refresh each route. Log in at `/admin/`, edit one text label, save, and reload the public page to confirm the database edit appears.
 
 **Pi:** test through Nginx:
 
 ```sh
-sudo -u portfolio /srv/portfolio/venv/bin/python /srv/portfolio/app/deploy/raspberrypi/smoke_test.py http://192.168.1.132
+sudo -u portfolio /srv/portfolio/venv/bin/python /srv/portfolio/app/deploy/raspberrypi/smoke_test.py http://192.168.1.205
 sudo systemctl is-enabled portfolio nginx postgresql
 ```
 
@@ -292,8 +292,8 @@ sudo -u portfolio /srv/portfolio/venv/bin/python /srv/portfolio/app/backend/mana
 sudo -u portfolio /srv/portfolio/venv/bin/python /srv/portfolio/app/backend/manage.py check
 sudo systemctl restart portfolio
 sudo systemctl status portfolio --no-pager
-curl --fail --show-error http://192.168.1.132/healthz/
-sudo -u portfolio /srv/portfolio/venv/bin/python /srv/portfolio/app/deploy/raspberrypi/smoke_test.py http://192.168.1.132
+curl --fail --show-error http://192.168.1.205/healthz/
+sudo -u portfolio /srv/portfolio/venv/bin/python /srv/portfolio/app/deploy/raspberrypi/smoke_test.py http://192.168.1.205
 ```
 
 Use your real address, or the HTTPS hostname if enabled. Repeat step 9's browser checks. Stop and diagnose failures or recover below; do not continue after a failed migration.
@@ -375,7 +375,7 @@ Switch only after the restore succeeds. If the update never changed the database
 ```sh
 sudo -u portfolio /srv/portfolio/venv/bin/python /srv/portfolio/app/backend/manage.py check
 sudo systemctl start portfolio
-curl --fail --show-error http://192.168.1.132/healthz/
+curl --fail --show-error http://192.168.1.205/healthz/
 ```
 
 Repeat smoke/browser checks at the appropriate origin. Future backups must use your active database name. This procedure preserves the failed database instead of overwriting it.
@@ -477,7 +477,7 @@ Install OS security updates regularly and verify after rebooting. Use the [main 
 
 These are historical notes, not a fresh live inspection:
 
-- The site was available at `http://raspberrypi.local` / `http://192.168.1.132`, with admin at `/admin/`. It was LAN-only HTTP; public HTTPS was not configured.
+- The site was originally available at `http://raspberrypi.local` / `http://192.168.1.132`, with admin at `/admin/`. It was LAN-only HTTP; public HTTPS was not configured.
 - The local `dawei` admin was transferred with its password unchanged. A fresh installation following this guide creates the account you choose.
 - The site-copy release was recorded as passing 17 backend tests, 7 frontend tests, and 30 live HTTP checks. Those counts describe that release.
 - The 2026-09-24 snapshot was based on commit `e95c5f4` plus local changes, SHA-256 `24b0e56a455a68c403f92331c9cf2c7f5c8a7340087eb42b7559b96346a35e5c`. Provenance was stored in `/srv/portfolio/deployment.json`.
