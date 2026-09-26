@@ -382,6 +382,8 @@ Repeat smoke/browser checks at the appropriate origin. Future backups must use y
 
 ## Private admin with WireGuard
 
+For visitor analytics at `/admin/analytics/` and separately assignable staff access to analytics, system health, and camera, follow the [analytics and permissions guide](../../backend/visitor_analytics/README.md). Deploy both frontend and backend, run migrations, and complete its first-time IP-proxy and retention-timer setup. Existing ordinary staff need an explicit camera permission after this update; superusers retain access to every tool.
+
 The live Pi now runs a self-hosted WireGuard server. The public portfolio remains available at `https://davyin.tech/`, while public requests for `/admin/` return 404. Connect the Mac's dedicated WireGuard peer first, then open `http://10.66.66.1:8080/admin/`. Give each device its own peer key and tunnel IP; do not share profiles between the Mac and phone. Follow the [WireGuard runbook](wireguard/README.md) for peer creation/revocation, router forwarding, client import, verification, and recovery steps. Remote access still needs a router rule forwarding UDP 51820 to the Pi; TCP is not needed.
 
 ## Optional staff camera

@@ -1,4 +1,5 @@
 import os
+from ipaddress import ip_network
 from pathlib import Path
 
 import dj_database_url
@@ -33,6 +34,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles",
     "portfolio",
     "system_monitor",
+    "visitor_analytics",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -96,6 +98,17 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
+ANALYTICS_ENABLED = env_bool("ANALYTICS_ENABLED", True)
+# Trust X-Real-IP only from explicitly configured, header-replacing proxies.
+ANALYTICS_TRUSTED_PROXIES = env_list("ANALYTICS_TRUSTED_PROXIES")
+try:
+    for proxy_network in ANALYTICS_TRUSTED_PROXIES:
+        ip_network(proxy_network)
+except ValueError as exc:
+    raise ImproperlyConfigured("ANALYTICS_TRUSTED_PROXIES must contain valid IP addresses or CIDRs.") from exc
+ANALYTICS_RETENTION_DAYS = int(os.getenv("ANALYTICS_RETENTION_DAYS", "90"))
+if not 1 <= ANALYTICS_RETENTION_DAYS <= 3650:
+    raise ImproperlyConfigured("ANALYTICS_RETENTION_DAYS must be between 1 and 3650.")
 CAMERA_STREAM_MODE = os.getenv("CAMERA_STREAM_MODE", "broadcast").strip().lower()
 if CAMERA_STREAM_MODE not in {"broadcast", "exclusive"}:
     raise ImproperlyConfigured("CAMERA_STREAM_MODE must be 'broadcast' or 'exclusive'.")

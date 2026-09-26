@@ -45,7 +45,11 @@ Open http://127.0.0.1:8000. Existing routes (`/about`, `/projects`, `/technologi
 
 ## Editing content
 
-Superusers can open **System health** from the admin home at `/admin/system/`. It embeds the open-source Glances dashboard for live CPU, memory, storage, network, and sensor metrics. Install the separate Pi collector using the [system-monitor guide](backend/system_monitor/README.md). Every dashboard, asset, and metrics request requires a superuser session; ordinary staff accounts cannot access it.
+The admin has separate **Visitor analytics**, **System health**, and **Camera** tabs. Superusers can access all three and grant individual staff access through **Users → Permissions** or **Groups**. Only superusers can manage users and groups. Staff without a tool's permission cannot see its navigation or access its URLs.
+
+**Visitor analytics** at `/admin/analytics/` shows page views, unique IPs, traffic charts, popular pages, referrers, and devices. See the [analytics and staff-access guide](backend/visitor_analytics/README.md) for permission assignment, first-time proxy configuration, retention, and deployment. It requires both the frontend and backend update; collection starts after deployment.
+
+**System health** at `/admin/system/` embeds the open-source Glances dashboard for live CPU, memory, storage, network, and sensor metrics. Install the separate Pi collector using the [system-monitor guide](backend/system_monitor/README.md). Every dashboard, asset, and metrics request requires an authorized staff session.
 
 At `/admin/` you can manage:
 
@@ -55,7 +59,7 @@ At `/admin/` you can manage:
 - **Experiences:** work and education entries, ordering, and visibility.
 - **Technologies:** technology/tool groups, icons, ordering, and visibility.
 - **Social links:** URLs and visibility; the current header displays LinkedIn and GitHub, as in the original frontend.
-- **Users and groups:** delegated staff access with Django's model permissions.
+- **Users and groups (superusers only):** assign content-editing permissions and separate analytics, system-health, and camera access.
 
 The original content is imported once by migration `0002_initial_content`. Subsequent migrations do not overwrite edits or restore deleted items. `src/Details.js` remains only as a historical reference; edit live content in the admin. Reload the public page after saving changes. Empty lists stay empty, and unavailable API responses show a retry action.
 
@@ -90,7 +94,7 @@ docker compose up -d web
 docker compose exec web python backend/manage.py check --deploy --fail-level WARNING
 ```
 
-Configure the host's HTTPS reverse proxy, then visit `https://YOUR_DOMAIN/` and `https://YOUR_DOMAIN/admin/`. `GET /healthz/` checks database connectivity; `GET /api/content/` returns public content. The public API accepts only GET and HEAD.
+Configure the host's HTTPS reverse proxy, then visit `https://YOUR_DOMAIN/` and `https://YOUR_DOMAIN/admin/`. `GET /healthz/` checks database connectivity; `GET /api/content/` returns public content and accepts only GET and HEAD. The separate `/api/analytics/pageview/` endpoint accepts write-only visitor telemetry via POST; analytics reports remain under the protected admin route.
 
 Production defaults require a secret, explicit hosts, and a PostgreSQL URL, and enable HTTPS redirects, secure cookies, HSTS, and CSRF protection. `DJANGO_TRUST_PROXY=true` is appropriate only when the trusted proxy overwrites incoming `X-Forwarded-Proto` headers and clients cannot bypass it. HSTS includes subdomains: all subdomains must support HTTPS before using these defaults.
 
@@ -132,7 +136,7 @@ CI=true npm test -- --watchAll=false --runInBand
 CI=true GENERATE_SOURCEMAP=false npm run build
 python backend/manage.py collectstatic --noinput
 python backend/manage.py makemigrations --check --dry-run
-python backend/manage.py test portfolio system_monitor
+python backend/manage.py test portfolio system_monitor visitor_analytics
 ```
 
 The backend tests include initial data, ordering/visibility, empty lists, URL validation, read-only API behavior, staff permissions, CSRF-protected admin edits, migration preservation, deep links, database health, and production static assets. Build and collect static files before running them. The frontend tests cover loading, failure/retry, invalid responses, cancellation, empty projects, and page navigation using API content.

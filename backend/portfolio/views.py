@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.db import connection, DatabaseError
-from django.contrib.admin.views.decorators import staff_member_required
 from django.http import FileResponse, HttpResponse, JsonResponse, StreamingHttpResponse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe
@@ -10,6 +9,7 @@ if settings.CAMERA_STREAM_MODE == "exclusive":
 else:
     from camera.broadcast import multipart_frames, start_stream, stop_stream
 from .models import Experience, Profile, Project, SiteText, SocialLink, Technology
+from .access import admin_tool_required, permission_checked_frames
 
 
 @require_safe
@@ -65,14 +65,16 @@ def frontend(request):
     return FileResponse(index.open("rb"), content_type="text/html")
 
 
-@staff_member_required
 @never_cache
+@admin_tool_required("portfolio.view_camera")
+@require_safe
 def camera_page(request):
     return render(request, "portfolio/camera.html")
 
 
-@staff_member_required
 @never_cache
+@admin_tool_required("portfolio.view_camera")
+@require_safe
 def camera_stream(request):
     stream, release = start_stream()
     if stream is None:
@@ -82,7 +84,7 @@ def camera_stream(request):
             content_type="text/plain",
         )
     response = StreamingHttpResponse(
-        multipart_frames(stream, release),
+        permission_checked_frames(request, multipart_frames(stream, release), "portfolio.view_camera"),
         content_type="multipart/x-mixed-replace; boundary=frame",
     )
     response["X-Accel-Buffering"] = "no"

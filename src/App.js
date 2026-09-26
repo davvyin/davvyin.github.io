@@ -7,10 +7,12 @@ import About from "./Pages/About";
 import Contact from "./Pages/Contact";
 import Projects from "./Pages/Projects";
 import Technologies from "./Pages/Technologies";
+import VisitorAnalytics from "./VisitorAnalytics";
 function App() {
   return (
     <ContentProvider>
     <Router>
+      <VisitorAnalytics />
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />

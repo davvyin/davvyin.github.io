@@ -3,6 +3,20 @@ from django.db import models
 from .validators import http_url, image_url
 
 
+class AdminToolAccess(models.Model):
+    """Permission container only: no table, rows, or model-admin CRUD views."""
+
+    class Meta:
+        managed = False
+        default_permissions = ()
+        verbose_name = "admin tool access"
+        permissions = [
+            ("view_visitor_analytics", "Can view visitor analytics (includes IP addresses)"),
+            ("view_system_health", "Can view system health"),
+            ("view_camera", "Can view live camera"),
+        ]
+
+
 class Profile(models.Model):
     id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False,
                                          validators=[MinValueValidator(1), MaxValueValidator(1)])

@@ -1,0 +1,15 @@
+[Unit]
+Description=Remove expired portfolio visitor analytics
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=portfolio
+Group=portfolio
+WorkingDirectory=/srv/portfolio/app/backend
+EnvironmentFile=/srv/portfolio/app/.env
+ExecStart=/srv/portfolio/venv/bin/python manage.py prune_visitor_analytics
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
