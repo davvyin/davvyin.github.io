@@ -1,6 +1,6 @@
 # Administrator-only Pi system monitoring
 
-Open **Admin → Raspberry Pi health → Open system monitoring dashboard**, or visit `/admin/system/` on your admin origin. On the recorded WireGuard installation, connect the VPN and use `http://10.66.66.1:8080/admin/system/`. Sign in with an active Django **superuser** that also has staff access. Ordinary staff/content editors receive 403.
+Open **Admin → Raspberry Pi health → Open system monitoring dashboard**, or visit `/admin/system/` on your admin origin. On the recorded WireGuard installation, connect the VPN and use `http://10.66.66.1:8080/admin/system/`. Sign in with an active Django **superuser** that also has staff access, or a staff account granted **Can view system health** (`portfolio.view_system_health`). Other staff/content editors receive 403. Superusers assign access through Users or Groups; see the [staff access guide](../visitor_analytics/README.md#control-staff-access-to-all-three-tools).
 
 This feature integrates [Glances](https://github.com/nicolargo/glances), using its existing Vue/Bootstrap Web UI and Python/psutil collectors. It does not recreate the graphs or poll hardware inside Django. The pinned `glances[web]==4.5.6` PyPI distribution supplies the compiled UI and collector; its source is LGPL-3.0 licensed. No CDN or separate JavaScript build is needed for this feature.
 
@@ -25,7 +25,7 @@ The integration is read-only. Glances controls that clear alerts or request exte
 ## Architecture and access controls
 
 ```text
-Browser / VPN → existing Nginx admin route → Django session + superuser check
+Browser / VPN → existing Nginx admin route → Django session + tool permission
                                                ├─ /admin/system/ (admin wrapper)
                                                └─ /admin/system/dashboard/*
                                                      ↓ fixed loopback proxy
@@ -34,12 +34,12 @@ Browser / VPN → existing Nginx admin route → Django session + superuser chec
                                                 Pi host statistics
 ```
 
-- Django authorizes **every** HTML, JavaScript, icon, and API request. Logging out, disabling the account, or removing superuser status blocks the next request. Previously displayed information cannot be erased from an already-open browser.
+- Django authorizes **every** HTML, JavaScript, icon, and API request. Logging out, disabling the account, or removing all grants of system-health access blocks the next request. Previously displayed information cannot be erased from an already-open browser.
 - HTML/assets/API responses use `Cache-Control: no-store`. Only the embedded dashboard allows same-origin framing; the rest of the admin retains its existing protection.
 - The proxy accepts GET/HEAD and only the upstream Web UI's required read endpoints/static assets. It uses a fixed loopback host/port, does not follow redirects, and forwards no browser cookies, authorization headers, or query parameters. Requests have a three-second socket timeout and an 8 MiB response limit.
 - Glances binds only to `127.0.0.1`, restricts accepted Host headers, and runs under its own unprivileged Linux account. It does not load Django's `.env` or need database access. As with other loopback services, trusted local OS users/processes can connect directly; Django authorization protects browser access through the website.
 - Keep the existing public `/admin/*` block and VPN restrictions. Do **not** add an Nginx location directly proxying to port 61208, publish that port, or add it to router forwarding: that would bypass Django authentication. The existing catch-all proxy to Django already handles this feature.
-- No new database tables or migrations are needed. Collector failure does not make the existing `/healthz/` database check fail or expose hardware information there.
+- The collector needs no database table. Run Django migrations to create the admin-tool permissions. Collector failure does not make the existing `/healthz/` database check fail or expose hardware information there.
 
 ## Install on the existing Pi
 
@@ -122,7 +122,7 @@ The admin then shows the unavailable screen. No database cleanup is required.
 
 | Problem | Diagnosis |
 | --- | --- |
-| 403 in Django | The account needs active, staff, and superuser flags. Staff-only editors are intentionally denied. |
+| 403 in Django | The account needs active and staff flags, plus superuser status or the `portfolio.view_system_health` permission (directly or through a group). |
 | Public URL is 404 | Expected for this Pi: connect WireGuard and use the private admin origin. |
 | Retry screen / 503 | Check service status and journal, then the local curl command. Confirm port 61208 and the exact URL prefix. |
 | Blank dashboard / missing JavaScript | Install the pinned PyPI `web` extra; inspect requests under `/admin/system/dashboard/static/`. |
@@ -136,7 +136,7 @@ The admin then shows the unavailable screen. No database cleanup is required.
 The Django application has no additional Python dependencies. Its access-control/proxy tests use a fake upstream, so Glances need not run:
 
 ```sh
-python backend/manage.py test portfolio system_monitor
+python backend/manage.py test portfolio system_monitor visitor_analytics
 ```
 
 To preview actual local-machine metrics, create a separate environment and run the collector alongside the usual Django development server:

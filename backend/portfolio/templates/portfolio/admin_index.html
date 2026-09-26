@@ -1,17 +1,30 @@
 {% extends "admin/index.html" %}
 
 {% block content %}
-{% if user.is_superuser %}
+{% include "portfolio/admin_tabs.html" with active="content" %}
+{% if perms.portfolio.view_visitor_analytics %}
+<div class="module" style="margin-bottom: 16px;">
+  <table>
+    <caption>Visitor analytics</caption>
+    <tbody>
+      <tr><th scope="row"><a href="{% url 'visitor_analytics:dashboard' %}" target="_blank" rel="noopener">Open visitor analytics in a new tab ↗</a></th></tr>
+      <tr><td>Page views, unique IPs, popular pages, referrers, and devices · Authorized staff only</td></tr>
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% if perms.portfolio.view_system_health %}
 <div class="module" style="margin-bottom: 16px;">
   <table>
     <caption>Raspberry Pi health</caption>
     <tbody>
       <tr><th scope="row"><a href="{% url 'system_monitor:index' %}">Open system monitoring dashboard</a></th></tr>
-      <tr><td>CPU, memory, storage, network traffic, and sensors · Administrators only</td></tr>
+      <tr><td>CPU, memory, storage, network traffic, and sensors · Authorized staff only</td></tr>
     </tbody>
   </table>
 </div>
 {% endif %}
+{% if perms.portfolio.view_camera %}
 <div class="module" style="margin-bottom: 16px;">
   <table>
     <caption>Raspberry Pi camera</caption>
@@ -20,5 +33,6 @@
     </tbody>
   </table>
 </div>
+{% endif %}
 {{ block.super }}
 {% endblock %}

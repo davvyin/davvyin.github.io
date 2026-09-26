@@ -1,0 +1,12 @@
+<nav aria-label="Administration sections" style="display:flex;flex-wrap:wrap;gap:8px 20px;padding:12px 0;margin-bottom:18px;border-bottom:1px solid var(--hairline-color);">
+  <a href="{% url 'admin:index' %}" {% if active == 'content' %}aria-current="page"{% endif %}>Content</a>
+  {% if perms.portfolio.view_visitor_analytics %}
+  <a href="{% url 'visitor_analytics:dashboard' %}" {% if active == 'analytics' %}aria-current="page" style="font-weight:700;"{% endif %}>Visitor analytics</a>
+  {% endif %}
+  {% if perms.portfolio.view_system_health %}
+  <a href="{% url 'system_monitor:index' %}" {% if active == 'system' %}aria-current="page"{% endif %}>System health</a>
+  {% endif %}
+  {% if perms.portfolio.view_camera %}
+  <a href="{% url 'camera_page' %}" {% if active == 'camera' %}aria-current="page"{% endif %}>Camera</a>
+  {% endif %}
+</nav>

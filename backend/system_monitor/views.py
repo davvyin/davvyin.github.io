@@ -4,19 +4,17 @@ The upstream is deliberately fixed to loopback. Never accept a target URL or
 forward session cookies, authorization headers, redirects, or CORS headers.
 """
 
-from functools import wraps
 from http.client import HTTPConnection, HTTPException
 import logging
 import re
 
 from django.contrib import admin
-from django.contrib.auth.views import redirect_to_login
-from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
-from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_safe
+from portfolio.access import admin_tool_required
 
 logger = logging.getLogger(__name__)
 UPSTREAM_PREFIX = "/admin/system/dashboard/"
@@ -30,20 +28,8 @@ API_PATHS = {
 ASSET_PATH = re.compile(r"static/[a-zA-Z0-9_./-]+\Z")
 
 
-def administrator_required(view):
-    @wraps(view)
-    def protected(request, *args, **kwargs):
-        user = request.user
-        if not user.is_authenticated or not user.is_active:
-            return redirect_to_login(request.get_full_path(), reverse("admin:login"))
-        if not (user.is_staff and user.is_superuser):
-            return HttpResponseForbidden("System monitoring requires an administrator account.")
-        return view(request, *args, **kwargs)
-    return protected
-
-
 @never_cache
-@administrator_required
+@admin_tool_required("portfolio.view_system_health")
 @require_safe
 def index(request):
     context = {**admin.site.each_context(request), "title": "System health"}
@@ -57,7 +43,7 @@ def unavailable(request, path):
 
 
 @never_cache
-@administrator_required
+@admin_tool_required("portfolio.view_system_health")
 @require_safe
 @xframe_options_sameorigin
 def dashboard(request, path=""):

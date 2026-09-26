@@ -51,5 +51,5 @@ test("existing pages render API content and navigation retains the admin entry",
   fireEvent.click(screen.getByRole("link", { name: "Say hello" }));
   expect(screen.getByRole("heading", { name: "Contact me" })).toBeInTheDocument();
   expect(await screen.findByText("test@example.com")).toBeInTheDocument();
-  expect(global.fetch).toHaveBeenCalledTimes(1);
+  expect(global.fetch.mock.calls.filter(([url]) => url === "/api/content/")).toHaveLength(1);
 });

@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import DatabaseError
@@ -91,6 +92,7 @@ class AdminTests(TestCase):
         cls.admin = get_user_model().objects.create_superuser("admin-test", "admin@example.com", "test-only-password")
         cls.user = get_user_model().objects.create_user("reader", password="test-only-password")
         cls.staff = get_user_model().objects.create_user("staff", password="test-only-password", is_staff=True)
+        cls.staff.user_permissions.add(Permission.objects.get(content_type__app_label="portfolio", codename="view_camera"))
 
     def test_admin_requires_staff_login(self):
         self.assertRedirects(self.client.get("/admin/"), "/admin/login/?next=/admin/")
@@ -107,10 +109,7 @@ class AdminTests(TestCase):
             "/admin/login/?next=/admin/camera/",
         )
         self.client.force_login(self.user)
-        self.assertRedirects(
-            self.client.get("/admin/camera/"),
-            "/admin/login/?next=/admin/camera/",
-        )
+        self.assertEqual(self.client.get("/admin/camera/").status_code, 403)
         self.client.force_login(self.staff)
         self.assertContains(self.client.get("/admin/camera/"), "/admin/camera/stream.mjpg")
         self.assertContains(self.client.get("/admin/"), "Open staff-only live camera view")
@@ -135,7 +134,7 @@ class AdminTests(TestCase):
             self.assertEqual(body.count(b"--frame\r\n"), 2)
             self.assertIn(jpeg1, body)
             self.assertIn(jpeg2, body)
-            response.close()
+            self.assertTrue(response.closed)
 
     def test_camera_stream_reports_missing_camera_tool(self):
         self.client.force_login(self.staff)

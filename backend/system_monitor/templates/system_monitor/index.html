@@ -19,6 +19,7 @@
 {% endblock %}
 
 {% block content %}
+{% include "portfolio/admin_tabs.html" with active="system" %}
 <div class="monitor-intro">
   <div>
     <p>Live hardware and operating-system metrics from this host, powered by Glances.</p>

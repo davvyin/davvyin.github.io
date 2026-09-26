@@ -1,0 +1,55 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'visitor_analytics/dashboard.css' %}">{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url 'admin:index' %}">Home</a> &rsaquo; Visitor analytics</div>{% endblock %}
+{% block content %}
+<div class="analytics">
+  {% include "portfolio/admin_tabs.html" with active="analytics" %}
+  <header class="analytics-header">
+    <div><p class="eyebrow">WEBSITE INSIGHTS</p><h1>Your audience, at a glance.</h1><p class="muted">{{ start_date|date:"M j" }} – {{ end_date|date:"M j, Y" }} · All times UTC · Authorized staff only</p></div>
+    <a class="refresh-link" href="?{{ pagination_query }}">Refresh stats ↻</a>
+  </header>
+  {% if not enabled %}<p class="notice">Collection is paused. Previously recorded visits are still shown.</p>{% endif %}
+  {% if not proxy_configured %}<p class="notice">Proxy IP forwarding is not configured. If this site is behind Nginx or Cloudflare, complete the analytics proxy setup before interpreting the unique IP counts.</p>{% endif %}
+  <form method="get" class="analytics-filters">
+    <div><label for="days">Time range</label><select name="days" id="days">{% for period in periods %}<option value="{{ period }}" {% if days == period %}selected{% endif %}>{% if period == 1 %}Today{% else %}Last {{ period }} days{% endif %}</option>{% endfor %}</select></div>
+    <div class="ip-filter"><label for="ip">Find an IP address</label><input id="ip" name="ip" value="{{ ip }}" maxlength="45" placeholder="IPv4 or IPv6 address" autocomplete="off" {% if error %}aria-invalid="true" aria-describedby="filter-error"{% endif %}></div>
+    <button type="submit" class="button">Apply filters</button>{% if ip %}<a href="?days={{ days }}">Clear IP filter</a>{% endif %}
+  </form>
+  {% if error %}<p id="filter-error" class="errornote">{{ error }}</p>{% endif %}
+  <section class="stat-grid" aria-label="Traffic totals">
+    <article class="stat-card"><span>Page views</span><strong>{{ totals.views }}</strong><small>Recorded page loads &amp; navigation</small></article>
+    <article class="stat-card"><span>Unique IPs</span><strong>{{ totals.unique_ips }}</strong><small>Distinct addresses in this period</small></article>
+    <article class="stat-card"><span>Recently active IPs</span><strong>{{ active_ips }}</strong><small>Visited within the last 5 minutes</small></article>
+  </section>
+  <section class="panel" aria-labelledby="traffic-heading">
+    <div class="panel-heading"><div><h2 id="traffic-heading">Traffic over time</h2><p class="muted">Daily page views · Peak {{ peak }}</p></div><span class="legend"><i></i> Page views</span></div>
+    {% if totals.views %}
+    <div class="traffic-chart" role="img" aria-label="Daily page views from {{ start_date }} to {{ end_date }}. Exact counts are in the daily totals below.">
+      {% for point in chart %}<div class="chart-column" title="{{ point.day|date:'M j' }}: {{ point.views }} page views, {{ point.ips }} unique IPs"><div class="chart-bar" style="height: {{ point.height }}%;"></div></div>{% endfor %}
+    </div>
+    <div class="chart-axis"><span>{{ start_date|date:"M j" }}</span><span>{{ end_date|date:"M j" }}</span></div>
+    <details class="daily-detail"><summary>View daily totals</summary><div class="table-scroll"><table><thead><tr><th>Date (UTC)</th><th>Page views</th><th>Unique IPs</th></tr></thead><tbody>{% for point in chart %}<tr><td>{{ point.day|date:"Y-m-d" }}</td><td>{{ point.views }}</td><td>{{ point.ips }}</td></tr>{% endfor %}</tbody></table></div></details>
+    {% else %}<div class="empty-state"><strong>No visits in this view yet.</strong><p>Stats appear after visitors load the website. Try a longer range or clear the IP filter.</p></div>{% endif %}
+  </section>
+  <section class="panel" id="visitors" aria-labelledby="visitors-heading">
+    <div class="panel-heading"><div><h2 id="visitors-heading">Unique IP addresses</h2><p class="muted">{{ ip_page.paginator.count }} distinct addresses · Select an IP to explore its activity</p></div><span class="pill">Private</span></div>
+    <div class="table-scroll"><table><thead><tr><th>IP address</th><th>Page views</th><th>Pages visited</th><th>First seen (UTC)</th><th>Last seen (UTC)</th></tr></thead><tbody>
+      {% for visitor in ip_page %}<tr><td><a class="ip-address" href="?days={{ days }}&amp;ip={{ visitor.ip_address|urlencode }}">{{ visitor.ip_address }}</a></td><td>{{ visitor.views }}</td><td>{{ visitor.pages }}</td><td>{{ visitor.first_seen|date:"M j, H:i:s" }}</td><td>{{ visitor.last_seen|date:"M j, H:i:s" }}</td></tr>
+      {% empty %}<tr><td colspan="5" class="empty-cell">No matching visitors.</td></tr>{% endfor %}
+    </tbody></table></div>
+    {% if ip_page.has_other_pages %}<nav class="pagination" aria-label="Visitor list pages">{% if ip_page.has_previous %}<a href="?{{ pagination_query }}&amp;page={{ ip_page.previous_page_number }}#visitors">← Previous</a>{% endif %}<span>Page {{ ip_page.number }} of {{ ip_page.paginator.num_pages }}</span>{% if ip_page.has_next %}<a href="?{{ pagination_query }}&amp;page={{ ip_page.next_page_number }}#visitors">Next →</a>{% endif %}</nav>{% endif %}
+  </section>
+  <div class="breakdown-grid">
+    <section class="panel"><h2>Popular pages</h2><ul class="rank-list">{% for item in pages %}<li><code>{{ item.path }}</code><strong>{{ item.views }}</strong></li>{% empty %}<li class="muted">No page views yet.</li>{% endfor %}</ul></section>
+    <section class="panel"><h2>Referring sites</h2><ul class="rank-list">{% for item in referrers %}<li><span>{{ item.referrer|default:"Direct / internal / unknown" }}</span><strong>{{ item.views }}</strong></li>{% empty %}<li class="muted">No referrers yet.</li>{% endfor %}</ul></section>
+    <section class="panel"><h2>Browsers</h2><ul class="rank-list">{% for item in browsers %}<li><span>{{ item.browser }}</span><strong>{{ item.views }}</strong></li>{% empty %}<li class="muted">No browser data yet.</li>{% endfor %}</ul></section>
+    <section class="panel"><h2>Devices</h2><ul class="rank-list">{% for item in devices %}<li><span>{{ item.device }}</span><strong>{{ item.views }}</strong></li>{% empty %}<li class="muted">No device data yet.</li>{% endfor %}</ul></section>
+  </div>
+  <section class="panel"><div class="panel-heading"><div><h2>Recent page views</h2><p class="muted">Latest 15 events matching your filters</p></div></div><div class="table-scroll"><table><thead><tr><th>Time (UTC)</th><th>IP address</th><th>Page</th><th>Referrer</th><th>Browser / device</th></tr></thead><tbody>
+    {% for event in recent %}<tr><td>{{ event.occurred_at|date:"M j, H:i:s" }}</td><td><a class="ip-address" href="?days={{ days }}&amp;ip={{ event.ip_address|urlencode }}">{{ event.ip_address }}</a></td><td><code>{{ event.path }}</code></td><td>{{ event.referrer|default:"Direct / internal / unknown" }}</td><td>{{ event.browser }} / {{ event.device }}</td></tr>{% empty %}<tr><td colspan="5" class="empty-cell">No recent activity.</td></tr>{% endfor %}
+  </tbody></table></div></section>
+  <p class="analytics-footnote">Unique IPs are not unique people: shared networks, VPNs, and changing addresses affect counts. JavaScript-blocked visits, known bots, signed-in staff, and browsers requesting Do Not Track or Global Privacy Control are excluded. First/last seen refer to the selected period. Referrers may be unavailable. Configured retention: {{ retention_days }} days; the scheduled cleanup command enforces it.</p>
+</div>
+{% endblock %}

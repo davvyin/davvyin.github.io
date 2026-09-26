@@ -3,9 +3,10 @@
 {% block title %}Live camera | {{ site_title }}{% endblock %}
 
 {% block content %}
+{% include "portfolio/admin_tabs.html" with active="camera" %}
 <div id="content-main">
   <h1>Raspberry Pi camera</h1>
-  <p>This live view is available only to signed-in staff accounts. Multiple viewers share one camera capture.</p>
+  <p>This live view is available only to staff with camera access. In broadcast mode, viewers share one camera capture.</p>
   <p><a href="{% url 'admin:index' %}">Back to administration</a></p>
   <div style="max-width: 960px; background: #111; padding: 4px;">
     <img src="{% url 'camera_stream' %}" alt="Live Raspberry Pi camera stream"
